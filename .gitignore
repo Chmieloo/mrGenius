@@ -16,3 +16,6 @@
 /vendor/
 /web/bundles/
 /mysql/
+/var/
+.idea/inspectionProfiles/
+web/index.php

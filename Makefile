@@ -22,6 +22,8 @@ create-dirs:
 	sudo chmod -R 777 var/cache
 	sudo mkdir -p var/logs
 	sudo chmod -R 777 var/logs
+	sudo mkdir -p var/sessions
+	sudo chmod -R 777 var/sessions
 
 fix-permissions:
 	HTTPDUSER=`ps axo user,comm | grep -E '[a]pache|[h]ttpd|[_]www|[w]ww-data|[n]ginx' | grep -v root | head -1 | cut -d\  -f1`
