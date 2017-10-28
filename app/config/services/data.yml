@@ -1,0 +1,5 @@
+services:
+  mrgenius.importservice:
+    class: AppBundle\Service\ImportService
+    public: true
+    autowire: true
