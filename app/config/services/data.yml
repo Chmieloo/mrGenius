@@ -3,3 +3,8 @@ services:
     class: AppBundle\Service\ImportService
     public: true
     autowire: true
+
+  mrgenius.optionsservice:
+    class: AppBundle\Service\OptionsService
+    public: true
+    autowire: true

@@ -1,0 +1,25 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Current configuration</h1>
+    <table class="table table-bordered">
+        <thead>
+        <tr>
+            <th scope="col">Attribute</th>
+            <th scope="col">Value</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>Current bank balance</td>
+            <td>{{ options.bankBalance }}</td>
+        </tr>
+        <tr>
+            <td>Last imported event</td>
+            <td>{{ options.lastImportedEvent }}</td>
+        </tr>
+        </tbody>
+    </table>
+{% endblock %}
+
+{% block stylesheets %}{% endblock %}

@@ -2,6 +2,14 @@ mrgenius_index:
   path : /
   defaults:  { _controller: AppBundle:Default:index }
 
-mrgenius_test:
-  path : /test
-  defaults:  { _controller: AppBundle:Default:test }
+mrgenius_info:
+  path : /info
+  defaults:  { _controller: AppBundle:Default:info }
+
+mrgenius_update:
+  path : /update
+  defaults:  { _controller: AppBundle:Default:update }
+
+mrgenius_import:
+  path : /import
+  defaults:  { _controller: AppBundle:Default:import }
