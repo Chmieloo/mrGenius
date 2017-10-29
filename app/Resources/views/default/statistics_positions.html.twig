@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Player position points statistics</h1>
+    <table class="table table-bordered">
+        <thead>
+        <tr>
+            <th scope="col">Position</th>
+            <th scope="col">Number of players</th>
+            <th scope="col">Total points</th>
+            <th scope="col">Average points per player</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for stats in statistics %}
+            <tr>
+                <td>{{ stats.position }}</td>
+                <td>{{ stats.numPlayers }}</td>
+                <td>{{ stats.totalPoints }}</td>
+                <td>{{ stats.averagePoints }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
+
+{% block stylesheets %}{% endblock %}

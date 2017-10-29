@@ -3,6 +3,7 @@
 namespace AppBundle\Controller;
 
 use AppBundle\Service\OptionsService;
+use AppBundle\Service\StatisticsService;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
@@ -74,5 +75,11 @@ class DefaultController extends Controller
             $optionsService->saveOption('last_imported_event', $lastImportedId);
         }
         return $this->render('default/import.html.twig', []);
+    }
+
+    public function statsFormationPointsAction()
+    {
+        /** @var StatisticsService $statisticsService */
+        $statisticsService = $this->get('mrgenius.statisticsService');
     }
 }

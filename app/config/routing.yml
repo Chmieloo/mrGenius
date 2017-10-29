@@ -13,3 +13,7 @@ mrgenius_update:
 mrgenius_import:
   path : /import
   defaults:  { _controller: AppBundle:Default:import }
+
+mrgenius_statistics_positions:
+  path : /statistics/positions
+  defaults:  { _controller: AppBundle:Statistics:positions }

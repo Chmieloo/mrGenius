@@ -8,3 +8,8 @@ services:
     class: AppBundle\Service\OptionsService
     public: true
     autowire: true
+
+  mrgenius.statisticsservice:
+    class: AppBundle\Service\StatisticsService
+    public: true
+    autowire: true
