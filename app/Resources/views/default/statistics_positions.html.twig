@@ -5,6 +5,7 @@
     <table class="table table-bordered">
         <thead>
         <tr>
+            <th scope="col">Id</th>
             <th scope="col">Position</th>
             <th scope="col">Number of players</th>
             <th scope="col">Total points</th>
@@ -14,6 +15,7 @@
         <tbody>
         {% for stats in statistics %}
             <tr>
+                <td>{{ stats.positionId }}</td>
                 <td>{{ stats.position }}</td>
                 <td>{{ stats.numPlayers }}</td>
                 <td>{{ stats.totalPoints }}</td>

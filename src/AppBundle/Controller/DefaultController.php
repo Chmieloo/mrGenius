@@ -82,4 +82,18 @@ class DefaultController extends Controller
         /** @var StatisticsService $statisticsService */
         $statisticsService = $this->get('mrgenius.statisticsService');
     }
+
+    /**
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function recommendationsAction()
+    {
+        /** @var StatisticsService $statisticsService */
+        $statisticsService = $this->get('mrgenius.statisticsservice');
+        $recommendedFormation = $statisticsService->getRecommendedFormation();
+
+        return $this->render('default/recommendations.html.twig', [
+            'recommendedFormation' => $recommendedFormation
+        ]);
+    }
 }

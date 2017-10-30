@@ -2,6 +2,7 @@
 
 namespace AppBundle\Service;
 
+use AppBundle\Model\Player;
 use Doctrine\DBAL\Driver\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
 
@@ -22,7 +23,7 @@ class StatisticsService
     {
         $query = $this->db->createQueryBuilder()
             ->select(
-                'p.element_type',
+                'p.element_type as positionId',
                 'pos.name as position',
                 'count(p.element_type) as numPlayers',
                 'sum(p.total_points) as totalPoints',
@@ -36,4 +37,44 @@ class StatisticsService
         return $result;
     }
 
+    /**
+     * @return string
+     */
+    public function getRecommendedFormation()
+    {
+        $maxPlayersPerPosition = [
+            1 => 1,
+            2 => 5,
+            3 => 5,
+            4 => 3,
+        ];
+
+        $data = $this->getPositionsPoints();
+        foreach ($data as $element) {
+            $playersData[$element['positionId']] = $element;
+        }
+        # Remove goalkeeper, there has to be one only in basic squad
+        unset($playersData[1]);
+
+        uasort($playersData, function ($a, $b) {
+            return $b['averagePoints'] - $a['averagePoints'];
+        });
+
+        $recommendedFormation = [];
+        $playersOnFieldPool = 10;
+        foreach ($playersData as $positionId => $element) {
+            $recommendedFormation[$positionId] =
+                $playersOnFieldPool > $maxPlayersPerPosition[$positionId] ?
+                    $maxPlayersPerPosition[$positionId] :
+                    $playersOnFieldPool;
+            $playersOnFieldPool -= $maxPlayersPerPosition[$positionId];
+        }
+
+        $formation = '1-' .
+            $recommendedFormation[Player::POSITION_DEFENDER] . '-' .
+            $recommendedFormation[Player::POSITION_MIDFIELDER] . '-' .
+            $recommendedFormation[Player::POSITION_FORWARDER];
+
+        return $formation;
+    }
 }

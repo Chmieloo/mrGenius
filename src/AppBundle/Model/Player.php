@@ -4,6 +4,11 @@ namespace AppBundle\Model;
 
 class Player
 {
+    const POSITION_GOALKEEPER = 1;
+    const POSITION_DEFENDER = 2;
+    const POSITION_MIDFIELDER = 3;
+    const POSITION_FORWARDER = 4;
+
     private $eventId;
     private $id;
     private $photo;
