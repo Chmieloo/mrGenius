@@ -31,6 +31,7 @@ class StatisticsService
             )
             ->from('players', 'p')
             ->join('p', 'positions', 'pos', 'pos.id = p.element_type')
+            ->where('p.total_points > 0')
             ->groupBy('p.element_type');
         $result = $query->execute()->fetchAll(\PDO::FETCH_ASSOC);
 

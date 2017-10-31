@@ -28,4 +28,18 @@ class StatisticsController extends Controller
             'recommendedFormation' => $recommendedFormation
         ]);
     }
+
+    public function goalkeepersAction()
+    {
+        /** @var StatisticsService $statisticsService */
+        $statisticsService = $this->get('mrgenius.statisticsservice');
+
+        $data = $statisticsService->getGoalkeepers();
+        //$recommendedFormation = $statisticsService->getRecommendedFormation();
+
+        return $this->render('default/statistics_goalkeepers.html.twig', [
+            'statistics' => $data,
+            //'recommendedFormation' => $recommendedFormation
+        ]);
+    }
 }
