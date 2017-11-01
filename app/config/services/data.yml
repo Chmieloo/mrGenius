@@ -13,3 +13,8 @@ services:
     class: AppBundle\Service\StatisticsService
     public: true
     autowire: true
+
+  mrgenius.dataservice:
+    class: AppBundle\Service\DataService
+    public: true
+    autowire: true

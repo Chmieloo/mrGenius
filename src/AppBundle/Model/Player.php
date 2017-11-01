@@ -9,98 +9,45 @@ class Player
     const POSITION_MIDFIELDER = 3;
     const POSITION_FORWARDER = 4;
 
-    private $eventId;
     private $id;
-    private $photo;
-    private $teamCode;
-    private $status;
-    private $code;
+    private $teamId;
+    private $elementType;
     private $firstName;
     private $secondName;
-    private $squadNumber;
-    private $news;
-    private $nowCost;
-    private $chanceOfPlayingThisRound;
-    private $chanceOfPlayingNextRound;
+    private $photo;
     private $form;
+    private $nowCost;
     private $totalPoints;
-    private $eventPoints;
     private $pointsPerGame;
-    private $minutes;
-    private $goalsScored;
-    private $assists;
-    private $cleanSheets;
-    private $goalsConceded;
-    private $ownGoals;
-    private $penaltiesSaved;
-    private $penaltiesMissed;
-    private $yellowCards;
-    private $redCards;
-    private $saves;
-    private $bonus;
-    private $bps;
+    private $ictIndex;
     private $influence;
     private $creativity;
     private $threat;
-    private $ictIndex;
-    private $elementType;
+    private $chanceOfPlayingNextRound;
+    /** @var Team $team */
     private $team;
-
+    /** @var  Performance[] $performances */
+    private $performances;
 
     public function __construct($data)
     {
-        $this->setEventId($data['eventId']);
         $this->setId($data['id']);
-        $this->setPhoto($data['photo']);
-        $this->setTeamCode($data['teamCode']);
-        $this->setStatus($data['status']);
-        $this->setCode($data['code']);
+        $this->setTeamId($data['teamId']);
+        $this->setElementType($data['elementType']);
         $this->setFirstName($data['firstName']);
         $this->setSecondName($data['secondName']);
-        $this->setSquadNumber($data['squadNumber']);
-        $this->setNews($data['news']);
-        $this->setNowCost($data['nowCost']);
-        $this->setChanceOfPlayingThisRound($data['chanceOfPlayingThisRound']);
-        $this->setChanceOfPlayingNextRound($data['chanceOfPayingNextRound']);
+        $this->setPhoto($data['photo']);
         $this->setForm($data['form']);
+        $this->setNowCost($data['nowCost']);
         $this->setTotalPoints($data['totalPoints']);
-        $this->setEventPoints($data['eventPoints']);
         $this->setPointsPerGame($data['pointsPerGame']);
-        $this->setMinutes($data['minutes']);
-        $this->setGoalsScored($data['goalsScored']);
-        $this->setAssists($data['assists']);
-        $this->setCleanSheets($data['cleanSheets']);
-        $this->setGoalsConceded($data['goalsConceded']);
-        $this->setOwnGoals($data['ownGoals']);
-        $this->setPenaltiesSaved($data['penaltiesSaved']);
-        $this->setPenaltiesMissed($data['penaltiesMissed']);
-        $this->setYellowCards($data['yellowCards']);
-        $this->setRedCards($data['redCards']);
-        $this->setSaves($data['saves']);
-        $this->setBonus($data['bonus']);
-        $this->setBps($data['bps']);
+        $this->setIctIndex($data['ictIndex']);
         $this->setInfluence($data['influence']);
         $this->setCreativity($data['creativity']);
         $this->setThreat($data['threat']);
-        $this->setIctIndex($data['ictIndex']);
-        $this->setElementType($data['elementType']);
-        $this->setTeam($data['teams']);
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getEventId()
-    {
-        return $this->eventId;
-    }
-
-    /**
-     * @param mixed $eventId
-     */
-    public function setEventId($eventId)
-    {
-        $this->eventId = $eventId;
+        $this->setChanceOfPlayingNextRound($data['chanceOfPayingNextRound']);
+        $this->setTeam($data['team']);
+        $this->setPerformances($data['performances']);
     }
 
     /**
@@ -122,65 +69,33 @@ class Player
     /**
      * @return mixed
      */
-    public function getPhoto()
+    public function getTeamId()
     {
-        return $this->photo;
+        return $this->teamId;
     }
 
     /**
-     * @param mixed $photo
+     * @param mixed $teamId
      */
-    public function setPhoto($photo)
+    public function setTeamId($teamId)
     {
-        $this->photo = $photo;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getTeamCode()
-    {
-        return $this->teamCode;
-    }
-
-    /**
-     * @param mixed $teamCode
-     */
-    public function setTeamCode($teamCode)
-    {
-        $this->teamCode = $teamCode;
+        $this->teamId = $teamId;
     }
 
     /**
      * @return mixed
      */
-    public function getStatus()
+    public function getElementType()
     {
-        return $this->status;
+        return $this->elementType;
     }
 
     /**
-     * @param mixed $status
+     * @param mixed $elementType
      */
-    public function setStatus($status)
+    public function setElementType($elementType)
     {
-        $this->status = $status;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getCode()
-    {
-        return $this->code;
-    }
-
-    /**
-     * @param mixed $code
-     */
-    public function setCode($code)
-    {
-        $this->code = $code;
+        $this->elementType = $elementType;
     }
 
     /**
@@ -218,81 +133,17 @@ class Player
     /**
      * @return mixed
      */
-    public function getSquadNumber()
+    public function getPhoto()
     {
-        return $this->squadNumber;
+        return $this->photo;
     }
 
     /**
-     * @param mixed $squadNumber
+     * @param mixed $photo
      */
-    public function setSquadNumber($squadNumber)
+    public function setPhoto($photo)
     {
-        $this->squadNumber = $squadNumber;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getNews()
-    {
-        return $this->news;
-    }
-
-    /**
-     * @param mixed $news
-     */
-    public function setNews($news)
-    {
-        $this->news = $news;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getNowCost()
-    {
-        return $this->nowCost;
-    }
-
-    /**
-     * @param mixed $nowCost
-     */
-    public function setNowCost($nowCost)
-    {
-        $this->nowCost = $nowCost;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getChanceOfPlayingThisRound()
-    {
-        return $this->chanceOfPlayingThisRound;
-    }
-
-    /**
-     * @param mixed $chanceOfPlayingThisRound
-     */
-    public function setChanceOfPlayingThisRound($chanceOfPlayingThisRound)
-    {
-        $this->chanceOfPlayingThisRound = $chanceOfPlayingThisRound;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getChanceOfPlayingNextRound()
-    {
-        return $this->chanceOfPlayingNextRound;
-    }
-
-    /**
-     * @param mixed $chanceOfPlayingNextRound
-     */
-    public function setChanceOfPlayingNextRound($chanceOfPlayingNextRound)
-    {
-        $this->chanceOfPlayingNextRound = $chanceOfPlayingNextRound;
+        $this->photo = $photo;
     }
 
     /**
@@ -314,6 +165,22 @@ class Player
     /**
      * @return mixed
      */
+    public function getNowCost()
+    {
+        return $this->nowCost;
+    }
+
+    /**
+     * @param mixed $nowCost
+     */
+    public function setNowCost($nowCost)
+    {
+        $this->nowCost = $nowCost;
+    }
+
+    /**
+     * @return mixed
+     */
     public function getTotalPoints()
     {
         return $this->totalPoints;
@@ -325,22 +192,6 @@ class Player
     public function setTotalPoints($totalPoints)
     {
         $this->totalPoints = $totalPoints;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getEventPoints()
-    {
-        return $this->eventPoints;
-    }
-
-    /**
-     * @param mixed $eventPoints
-     */
-    public function setEventPoints($eventPoints)
-    {
-        $this->eventPoints = $eventPoints;
     }
 
     /**
@@ -362,209 +213,17 @@ class Player
     /**
      * @return mixed
      */
-    public function getMinutes()
+    public function getIctIndex()
     {
-        return $this->minutes;
+        return $this->ictIndex;
     }
 
     /**
-     * @param mixed $minutes
+     * @param mixed $ictIndex
      */
-    public function setMinutes($minutes)
+    public function setIctIndex($ictIndex)
     {
-        $this->minutes = $minutes;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getGoalsScored()
-    {
-        return $this->goalsScored;
-    }
-
-    /**
-     * @param mixed $goalsScored
-     */
-    public function setGoalsScored($goalsScored)
-    {
-        $this->goalsScored = $goalsScored;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getAssists()
-    {
-        return $this->assists;
-    }
-
-    /**
-     * @param mixed $assists
-     */
-    public function setAssists($assists)
-    {
-        $this->assists = $assists;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getCleanSheets()
-    {
-        return $this->cleanSheets;
-    }
-
-    /**
-     * @param mixed $cleanSheets
-     */
-    public function setCleanSheets($cleanSheets)
-    {
-        $this->cleanSheets = $cleanSheets;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getGoalsConceded()
-    {
-        return $this->goalsConceded;
-    }
-
-    /**
-     * @param mixed $goalsConceded
-     */
-    public function setGoalsConceded($goalsConceded)
-    {
-        $this->goalsConceded = $goalsConceded;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getOwnGoals()
-    {
-        return $this->ownGoals;
-    }
-
-    /**
-     * @param mixed $ownGoals
-     */
-    public function setOwnGoals($ownGoals)
-    {
-        $this->ownGoals = $ownGoals;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getPenaltiesSaved()
-    {
-        return $this->penaltiesSaved;
-    }
-
-    /**
-     * @param mixed $penaltiesSaved
-     */
-    public function setPenaltiesSaved($penaltiesSaved)
-    {
-        $this->penaltiesSaved = $penaltiesSaved;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getPenaltiesMissed()
-    {
-        return $this->penaltiesMissed;
-    }
-
-    /**
-     * @param mixed $penaltiesMissed
-     */
-    public function setPenaltiesMissed($penaltiesMissed)
-    {
-        $this->penaltiesMissed = $penaltiesMissed;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getYellowCards()
-    {
-        return $this->yellowCards;
-    }
-
-    /**
-     * @param mixed $yellowCards
-     */
-    public function setYellowCards($yellowCards)
-    {
-        $this->yellowCards = $yellowCards;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getRedCards()
-    {
-        return $this->redCards;
-    }
-
-    /**
-     * @param mixed $redCards
-     */
-    public function setRedCards($redCards)
-    {
-        $this->redCards = $redCards;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getSaves()
-    {
-        return $this->saves;
-    }
-
-    /**
-     * @param mixed $saves
-     */
-    public function setSaves($saves)
-    {
-        $this->saves = $saves;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getBonus()
-    {
-        return $this->bonus;
-    }
-
-    /**
-     * @param mixed $bonus
-     */
-    public function setBonus($bonus)
-    {
-        $this->bonus = $bonus;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getBps()
-    {
-        return $this->bps;
-    }
-
-    /**
-     * @param mixed $bps
-     */
-    public function setBps($bps)
-    {
-        $this->bps = $bps;
+        $this->ictIndex = $ictIndex;
     }
 
     /**
@@ -618,48 +277,48 @@ class Player
     /**
      * @return mixed
      */
-    public function getIctIndex()
+    public function getChanceOfPlayingNextRound()
     {
-        return $this->ictIndex;
+        return $this->chanceOfPlayingNextRound;
     }
 
     /**
-     * @param mixed $ictIndex
+     * @param mixed $chanceOfPlayingNextRound
      */
-    public function setIctIndex($ictIndex)
+    public function setChanceOfPlayingNextRound($chanceOfPlayingNextRound)
     {
-        $this->ictIndex = $ictIndex;
+        $this->chanceOfPlayingNextRound = $chanceOfPlayingNextRound;
     }
 
     /**
-     * @return mixed
+     * @return Team
      */
-    public function getElementType()
-    {
-        return $this->elementType;
-    }
-
-    /**
-     * @param mixed $elementType
-     */
-    public function setElementType($elementType)
-    {
-        $this->elementType = $elementType;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getTeam()
+    public function getTeam(): Team
     {
         return $this->team;
     }
 
     /**
-     * @param mixed $team
+     * @param Team $team
      */
-    public function setTeam($team)
+    public function setTeam(Team $team)
     {
         $this->team = $team;
+    }
+
+    /**
+     * @return Performance[]
+     */
+    public function getPerformances(): array
+    {
+        return $this->performances;
+    }
+
+    /**
+     * @param Performance[] $performances
+     */
+    public function setPerformances(array $performances)
+    {
+        $this->performances = $performances;
     }
 }
