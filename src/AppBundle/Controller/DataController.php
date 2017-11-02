@@ -24,13 +24,22 @@ class DataController extends Controller
         $dataService = $this->get('mrgenius.dataservice');
         $playersObjects = $dataService->loadData();
 
-        var_dump($playersObjects[1]);
+        $players = $dataService->getPlayerByTypeFormatted($playersObjects);
+        $formation = $dataService->getFormation($playersObjects);
 
-        // replace this example code with whatever you need
-        /*
+        $formationString = '1-' .
+            $formation[Player::POSITION_DEFENDER] . '-' .
+            $formation[Player::POSITION_MIDFIELDER] . '-' .
+            $formation[Player::POSITION_FORWARDER];
+
+        # TODO - get goalkeeper
+
+        # TODO - get rest of the team by points priority
+
         return $this->render('default/index.html.twig', [
-            'base_dir' => realpath($this->getParameter('kernel.project_dir')) . DIRECTORY_SEPARATOR,
+            'players' => $players,
+            'formation' => $formationString
         ]);
-        */
+
     }
 }

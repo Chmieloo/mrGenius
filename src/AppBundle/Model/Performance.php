@@ -29,6 +29,24 @@ class Performance
     private $openPlayCrosses;
     private $opponent;
     private $opponentId;
+    private $ownGoals;
+    private $penaltiesConceded;
+    private $penaltiesMissed;
+    private $penaltiesSaved;
+    private $recoveries;
+    private $redCards;
+    private $round;
+    private $saves;
+    private $selected;
+    private $tackes;
+    private $tackled;
+    private $targetMissed;
+    private $threat;
+    private $totalPoints;
+    private $value;
+    private $wasHome;
+    private $winningGoals;
+    private $yellowCards;
 
     /**
      * Performance constructor.
@@ -60,7 +78,295 @@ class Performance
         $this->setOffside($data['offside']);
         $this->setOpenPlayCrosses($data['openPlayCrosses']);
         $this->setOpponent($data['opponent']);
-        $this->setPpponentId($data['opponentId']);
+        $this->setOpponentId($data['opponentId']);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getOwnGoals()
+    {
+        return $this->ownGoals;
+    }
+
+    /**
+     * @param mixed $ownGoals
+     */
+    public function setOwnGoals($ownGoals)
+    {
+        $this->ownGoals = $ownGoals;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getPenaltiesConceded()
+    {
+        return $this->penaltiesConceded;
+    }
+
+    /**
+     * @param mixed $penaltiesConceded
+     */
+    public function setPenaltiesConceded($penaltiesConceded)
+    {
+        $this->penaltiesConceded = $penaltiesConceded;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getPenaltiesMissed()
+    {
+        return $this->penaltiesMissed;
+    }
+
+    /**
+     * @param mixed $penaltiesMissed
+     */
+    public function setPenaltiesMissed($penaltiesMissed)
+    {
+        $this->penaltiesMissed = $penaltiesMissed;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getPenaltiesSaved()
+    {
+        return $this->penaltiesSaved;
+    }
+
+    /**
+     * @param mixed $penaltiesSaved
+     */
+    public function setPenaltiesSaved($penaltiesSaved)
+    {
+        $this->penaltiesSaved = $penaltiesSaved;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getRecoveries()
+    {
+        return $this->recoveries;
+    }
+
+    /**
+     * @param mixed $recoveries
+     */
+    public function setRecoveries($recoveries)
+    {
+        $this->recoveries = $recoveries;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getRedCards()
+    {
+        return $this->redCards;
+    }
+
+    /**
+     * @param mixed $redCards
+     */
+    public function setRedCards($redCards)
+    {
+        $this->redCards = $redCards;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getRound()
+    {
+        return $this->round;
+    }
+
+    /**
+     * @param mixed $round
+     */
+    public function setRound($round)
+    {
+        $this->round = $round;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getSaves()
+    {
+        return $this->saves;
+    }
+
+    /**
+     * @param mixed $saves
+     */
+    public function setSaves($saves)
+    {
+        $this->saves = $saves;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getSelected()
+    {
+        return $this->selected;
+    }
+
+    /**
+     * @param mixed $selected
+     */
+    public function setSelected($selected)
+    {
+        $this->selected = $selected;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getTackes()
+    {
+        return $this->tackes;
+    }
+
+    /**
+     * @param mixed $tackes
+     */
+    public function setTackes($tackes)
+    {
+        $this->tackes = $tackes;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getTackled()
+    {
+        return $this->tackled;
+    }
+
+    /**
+     * @param mixed $tackled
+     */
+    public function setTackled($tackled)
+    {
+        $this->tackled = $tackled;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getTargetMissed()
+    {
+        return $this->targetMissed;
+    }
+
+    /**
+     * @param mixed $targetMissed
+     */
+    public function setTargetMissed($targetMissed)
+    {
+        $this->targetMissed = $targetMissed;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getThreat()
+    {
+        return $this->threat;
+    }
+
+    /**
+     * @param mixed $threat
+     */
+    public function setThreat($threat)
+    {
+        $this->threat = $threat;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getTotalPoints()
+    {
+        return $this->totalPoints;
+    }
+
+    /**
+     * @param mixed $totalPoints
+     */
+    public function setTotalPoints($totalPoints)
+    {
+        $this->totalPoints = $totalPoints;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getValue()
+    {
+        return $this->value;
+    }
+
+    /**
+     * @param mixed $value
+     */
+    public function setValue($value)
+    {
+        $this->value = $value;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getWasHome()
+    {
+        return $this->wasHome;
+    }
+
+    /**
+     * @param mixed $wasHome
+     */
+    public function setWasHome($wasHome)
+    {
+        $this->wasHome = $wasHome;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getWinningGoals()
+    {
+        return $this->winningGoals;
+    }
+
+    /**
+     * @param mixed $winningGoals
+     */
+    public function setWinningGoals($winningGoals)
+    {
+        $this->winningGoals = $winningGoals;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getYellowCards()
+    {
+        return $this->yellowCards;
+    }
+
+    /**
+     * @param mixed $yellowCards
+     */
+    public function setYellowCards($yellowCards)
+    {
+        $this->yellowCards = $yellowCards;
     }
 
     /**
