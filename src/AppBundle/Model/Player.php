@@ -104,6 +104,14 @@ class Player
     }
 
     /**
+     * @return string
+     */
+    public function getName()
+    {
+        return $this->getSecondName() . ', ' . $this->getFirstName();
+    }
+
+    /**
      * @return mixed
      */
     public function getFirstName()

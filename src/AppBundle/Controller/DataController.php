@@ -24,7 +24,7 @@ class DataController extends Controller
         $dataService = $this->get('mrgenius.dataservice');
         $playersObjects = $dataService->loadData();
 
-        //$players = $dataService->getPlayerByTypeFormatted($playersObjects);
+        $players = $dataService->getPlayerByTypeFormatted($playersObjects);
         $formation = $dataService->getFormation($playersObjects);
 
         $formationString = '1-' .
@@ -37,11 +37,11 @@ class DataController extends Controller
         # TODO - get rest of the team by points priority
 
         $squad = $dataService->getSquad();
-/*
+
         return $this->render('default/index.html.twig', [
             'players' => $players,
             'formation' => $formationString
         ]);
-*/
+
     }
 }
