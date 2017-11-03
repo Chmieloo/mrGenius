@@ -29,6 +29,9 @@ class Player
     /** @var  Performance[] $performances */
     private $performances;
 
+    /** @var  float */
+    private $piIndex;
+
     public function __construct($data)
     {
         $this->setId($data['id']);
@@ -48,6 +51,8 @@ class Player
         $this->setChanceOfPlayingNextRound($data['chanceOfPayingNextRound']);
         $this->setTeam($data['team']);
         $this->setPerformances($data['performances']);
+
+        $this->calculatePiIndex();
     }
 
     /**
@@ -320,5 +325,18 @@ class Player
     public function setPerformances(array $performances)
     {
         $this->performances = $performances;
+    }
+
+    public function calculatePiIndex()
+    {
+        $this->piIndex = $this->getForm() * $this->getTotalPoints() * $this->getPointsPerGame();
+    }
+
+    /**
+     * @return float
+     */
+    public function getPiIndex()
+    {
+        return $this->piIndex;
     }
 }

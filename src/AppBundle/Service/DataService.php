@@ -80,73 +80,42 @@ class DataService
      * @param Player[] $playersArray
      * @return array
      */
-    public function getPlayerByType($playersArray)
+    public function getPlayerByPosition($playersArray)
     {
         $types = [];
         foreach ($playersArray as $player) {
             $playerType = $player->getElementType();
-            $types[$playerType][] = $player;
-        }
-
-        return $types;
-    }
-
-    /**
-     * @param Player[] $playersArray
-     * @return array
-     */
-    public function getPlayerByTypeFormatted($playersArray)
-    {
-        $types = [];
-        foreach ($playersArray as $player) {
             if ($player->getTotalPoints() > 0 && $player->getForm() > 0) {
-                $playerType = $player->getElementType();
-                $playerPi = $player->getForm() * $player->getTotalPoints() * $player->getPointsPerGame();
-                $types[$playerType][] = [
-                    'id' => $player->getId(),
-                    'name' => $player->getFirstName() . ' ' . $player->getSecondName(),
-                    'form' => $player->getForm(),
-                    'totalPoints' => $player->getTotalPoints(),
-                    'ppg' => $player->getPointsPerGame(),
-                    'value' => $player->getNowCost() / 10,
-                    'teamId'=> $player->getTeam()->getId(),
-                    'pi' => $playerPi,
-                ];
+                $types[$playerType][] = $player;
             }
         }
 
         usort($types[1], function ($a, $b) {
-            return $b['pi'] - $a['pi'];
+            return $b->getPiIndex() - $a->getPiIndex();
         });
 
         usort($types[2], function ($a, $b) {
-            return $b['pi'] - $a['pi'];
+            return $b->getPiIndex() - $a->getPiIndex();
         });
 
         usort($types[3], function ($a, $b) {
-            return $b['pi'] - $a['pi'];
+            return $b->getPiIndex() - $a->getPiIndex();
         });
 
         usort($types[4], function ($a, $b) {
-            return $b['pi'] - $a['pi'];
+            return $b->getPiIndex() - $a->getPiIndex();
         });
 
         return $types;
     }
 
     /**
-     * @param Player[] $playersArray
-     * @return string
+     * Get averages for positions
+     * @param $playersArray
+     * @return mixed
      */
-    public function getFormation($playersArray)
+    public function getAveragesForPositions($playersArray)
     {
-        $maxPlayersPerPosition = [
-            1 => 1,
-            2 => 5,
-            3 => 5,
-            4 => 3,
-        ];
-
         $playerData = [];
         foreach ($playersArray as $player) {
             if ($player->getTotalPoints() > 0 && $player->getForm() > 0) {
@@ -162,16 +131,34 @@ class DataService
                 $playerData[$position]['sumPoints'] / $playerData[$position]['numPlayers'];
         }
 
-        var_dump($playerDataAveragePoints);
-
         // Sort by average points
         uasort($playerDataAveragePoints, function ($a, $b) {
             return $b['averagePoints'] - $a['averagePoints'];
         });
 
+        return $playerDataAveragePoints;
+    }
+
+    /**
+     * @param Player[] $playersArray
+     * @return array
+     */
+    public function getFormation($playersArray)
+    {
+        $recommendedFormation = [];
+
+        $maxPlayersPerPosition = [
+            1 => 1,
+            2 => 5,
+            3 => 5,
+            4 => 3,
+        ];
+
+        $averagesForPositions = $this->getAveragesForPositions($playersArray);
+
         $recommendedFormation = [];
         $playersOnFieldPool = 11;
-        foreach ($playerDataAveragePoints as $positionId => $element) {
+        foreach ($averagesForPositions as $positionId => $element) {
             $recommendedFormation[$positionId] =
                 $playersOnFieldPool > $maxPlayersPerPosition[$positionId] ?
                     $maxPlayersPerPosition[$positionId] :
@@ -180,5 +167,88 @@ class DataService
         }
 
         return $recommendedFormation;
+    }
+
+    public function getSquad()
+    {
+        $firstEleven    = [];
+        $teamsCount     = [];
+
+        /** @var Player[] $allPlayers */
+        $allPlayers = $this->loadData();
+
+        /** @var array $playerByPosition */
+        $playerByPosition = $this->getPlayerByPosition($allPlayers);
+
+        /** @var array $formation */
+        $formation = $this->getFormation($allPlayers);
+
+        foreach ($formation as $position => $numberOfPlayers) {
+            /** Get number of players from given position */
+            switch ($position) {
+                case Player::POSITION_GOALKEEPER:
+                    $firstEleven =
+                        $this->getFirstElevenGoalKeeper($playerByPosition[Player::POSITION_GOALKEEPER], $firstEleven);
+                    break;
+                case Player::POSITION_DEFENDER:
+                    break;
+                case Player::POSITION_MIDFIELDER:
+                    break;
+                case Player::POSITION_FORWARDER:
+                    break;
+            }
+        }
+
+        $playersPool = $playerByPosition;
+        $goalkeepers    = $playersPool[1];
+        $defenders      = $playersPool[2];
+        $midfielders    = $playersPool[3];
+        $attackers      = $playersPool[4];
+
+        /** @var Player $goalkeeper1 */
+        $goalkeeper1 = array_shift($goalkeepers);
+        $teamsCount[$goalkeeper1->getTeam()->getId()] += 1;
+        var_dump(json_encode($firstEleven));
+
+        //var_dump($averagesForPositions);
+        //var_dump($playerByPosition[1]);
+    }
+
+    /**
+     * @param $playerByPosition
+     * @param $firstEleven
+     * @return array
+     */
+    public function getFirstElevenGoalKeeper($playerByPosition, $firstEleven)
+    {
+        /*
+         * TODO - since the goalkeeper is being picked first, take first element from sorted goalkeepers
+         * It has to be changed for next rounds
+         */
+        /** @var Player $topGoalkeeper */
+        $topGoalkeeper = array_shift($playerByPosition);
+        $firstEleven[] = $topGoalkeeper->getId();
+
+        return $firstEleven;
+    }
+
+    private function getFirstElevenAttackers()
+    {
+
+    }
+
+    private function getFirstElevenMidfielders()
+    {
+
+    }
+
+    public function getFirstElevenDefenders()
+    {
+
+    }
+
+    private function checkTeamPlayers()
+    {
+
     }
 }
