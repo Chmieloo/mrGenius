@@ -1,147 +1,33 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <br />
-    <div>
-        Formation: {{ formation }}
-    </div>
-    <br />
-    <p>
-        <a class="btn btn-primary" data-toggle="collapse" href="#goalkeepers" aria-expanded="false" aria-controls="collapseExample">
-            Goalkeepers
-        </a>
-        <a class="btn btn-primary" data-toggle="collapse" href="#defenders" aria-expanded="false" aria-controls="collapseExample">
-            Defenders
-        </a>
-        <a class="btn btn-primary" data-toggle="collapse" href="#midfielders" aria-expanded="false" aria-controls="collapseExample">
-            Midfielders
-        </a>
-        <a class="btn btn-primary" data-toggle="collapse" href="#attackers" aria-expanded="false" aria-controls="collapseExample">
-            Attackers
-        </a>
-    </p>
-    <div class="collapse" id="goalkeepers">
-        <h1>Goalkeepers</h1>
-        <table class="table table-bordered table-sm">
-            <thead>
-            <tr>
-                <th scope="col">Id</th>
-                <th scope="col">Name</th>
-                <th scope="col">Form</th>
-                <th scope="col">Total points</th>
-                <th scope="col">PPG</th>
-                <th scope="col">Cost</th>
-                <th scope="col">Team Id</th>
-                <th scope="col">pIndex</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for player in players[1] %}
-                <tr>
-                    <td>{{ player.id }}</td>
-                    <td>{{ player.name }}</td>
-                    <td>{{ player.form }}</td>
-                    <td>{{ player.totalPoints }}</td>
-                    <td>{{ player.ppg }}</td>
-                    <td>{{ player.value }}</td>
-                    <td>{{ player.teamId }}</td>
-                    <td>{{ player.pi }}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
 
-    <div class="collapse" id="defenders">
-        <h1>Defenders</h1>
+    <div id="goalkeepers">
+        <h1>Current state</h1>
         <table class="table table-bordered table-sm">
             <thead>
             <tr>
                 <th scope="col">Id</th>
                 <th scope="col">Name</th>
+                <th scope="col">Position</th>
                 <th scope="col">Form</th>
                 <th scope="col">Total points</th>
                 <th scope="col">PPG</th>
                 <th scope="col">Cost</th>
                 <th scope="col">Team Id</th>
-                <th scope="col">pIndex</th>
             </tr>
             </thead>
             <tbody>
-            {% for player in players[2] %}
+            {% for player in players %}
                 <tr>
                     <td>{{ player.id }}</td>
                     <td>{{ player.name }}</td>
+                    <td>{{ player.positionName }}</td>
                     <td>{{ player.form }}</td>
                     <td>{{ player.totalPoints }}</td>
-                    <td>{{ player.ppg }}</td>
-                    <td>{{ player.value }}</td>
+                    <td>{{ player.pointsPerGame }}</td>
+                    <td>{{ player.nowCost }}</td>
                     <td>{{ player.teamId }}</td>
-                    <td>{{ player.pi }}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <div class="collapse" id="midfielders">
-        <h1>Midfielders</h1>
-        <table class="table table-bordered table-sm">
-            <thead>
-            <tr>
-                <th scope="col">Id</th>
-                <th scope="col">Name</th>
-                <th scope="col">Form</th>
-                <th scope="col">Total points</th>
-                <th scope="col">PPG</th>
-                <th scope="col">Cost</th>
-                <th scope="col">Team Id</th>
-                <th scope="col">pIndex</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for player in players[3] %}
-                <tr>
-                    <td>{{ player.id }}</td>
-                    <td>{{ player.name }}</td>
-                    <td>{{ player.form }}</td>
-                    <td>{{ player.totalPoints }}</td>
-                    <td>{{ player.ppg }}</td>
-                    <td>{{ player.value }}</td>
-                    <td>{{ player.teamId }}</td>
-                    <td>{{ player.pi }}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <div class="collapse" id="attackers">
-        <h1>Attackers</h1>
-        <table class="table table-bordered table-sm">
-            <thead>
-            <tr>
-                <th scope="col">Id</th>
-                <th scope="col">Name</th>
-                <th scope="col">Form</th>
-                <th scope="col">Total points</th>
-                <th scope="col">PPG</th>
-                <th scope="col">Cost</th>
-                <th scope="col">Team Id</th>
-                <th scope="col">pIndex</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for player in players[4] %}
-                <tr>
-                    <td>{{ player.id }}</td>
-                    <td>{{ player.name }}</td>
-                    <td>{{ player.form }}</td>
-                    <td>{{ player.totalPoints }}</td>
-                    <td>{{ player.ppg }}</td>
-                    <td>{{ player.value }}</td>
-                    <td>{{ player.teamId }}</td>
-                    <td>{{ player.pi }}</td>
                 </tr>
             {% endfor %}
             </tbody>

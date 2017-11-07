@@ -8,8 +8,55 @@ use AppBundle\Model\Team;
 
 class DataService
 {
-    private $allPlayers = null;
+    /**
+     * Current state of the game
+     * @var string
+     */
+    private static $fplCurrentStateFeedUrl = 'https://fantasy.premierleague.com/drf/bootstrap-static';
 
+    /**
+     * History for given player (append player id)
+     * @var string
+     */
+    private static $fplPlayerHistoryFeedUrl = 'https://fantasy.premierleague.com/drf/element-summary/';
+
+    /**
+     * @return Player[] array
+     */
+    public function getAllPlayers()
+    {
+        $players = [];
+        $content = file_get_contents(static::$fplCurrentStateFeedUrl);
+        $jsonContent = json_decode($content);
+
+        $playerList = $jsonContent->{'elements'};
+        foreach ($playerList as $playerData) {
+            $playerId = $playerData->{'id'};
+            $teamId = $playerData->{'team'};
+
+            $players[$playerId] = new Player([
+                'id' => $playerId,
+                'teamId' => $playerData->{'team'},
+                'elementType' => $playerData->{'element_type'},
+                'firstName' => $playerData->{'first_name'},
+                'secondName' => $playerData->{'second_name'},
+                'photo' => $playerData->{'photo'},
+                'form' => $playerData->{'form'},
+                'nowCost' => $playerData->{'now_cost'},
+                'totalPoints' => $playerData->{'total_points'},
+                'pointsPerGame' => $playerData->{'points_per_game'},
+                'ictIndex' => $playerData->{'ict_index'},
+                'influence' => $playerData->{'influence'},
+                'creativity' => $playerData->{'creativity'},
+                'threat' => $playerData->{'threat'},
+                'chanceOfPlayingNextRound' => $playerData->{'chance_of_playing_next_round'},
+            ]);
+        }
+
+        return $players;
+    }
+
+    private $allPlayers = null;
     /**
      * @var array
      */
@@ -193,7 +240,6 @@ class DataService
             /** Get number of players from given position */
             switch ($position) {
                 case Player::POSITION_GOALKEEPER:
-                    var_dump('picking goalkeepers');
                     $firstEleven =
                         $this->getFirstElevenGoalKeeper(
                             $playerByPosition[Player::POSITION_GOALKEEPER],
@@ -201,7 +247,6 @@ class DataService
                         );
                     break;
                 case Player::POSITION_DEFENDER:
-                    var_dump('picking defenders');
                     $firstEleven =
                         $this->getFirstElevenDefenders(
                             $playerByPosition[Player::POSITION_DEFENDER],
@@ -209,7 +254,7 @@ class DataService
                             $numberOfPlayers
                         );
                     break;
-                case 666:
+                case Player::POSITION_MIDFIELDER:
                     $firstEleven =
                         $this->getFirstElevenMidfielders(
                             $playerByPosition[Player::POSITION_MIDFIELDER],
@@ -218,7 +263,6 @@ class DataService
                         );
                     break;
                 case Player::POSITION_FORWARDER:
-                    var_dump('picking forwards');
                     $firstEleven =
                         $this->getFirstElevenAttackers(
                             $playerByPosition[Player::POSITION_FORWARDER],
@@ -229,16 +273,19 @@ class DataService
             }
         }
 
-        //var_dump(json_encode($firstEleven));
-
-        foreach ($firstEleven as $playerId) {
+        $firstElevenIds = [];
+        $firstElevenNames = [];
+        foreach ($firstEleven as $playerData) {
+            $playerDataId = $playerData['id'];
             /** @var Player $player */
-            $player = $this->allPlayers[$playerId];
+            $player = $this->allPlayers[$playerDataId];
             //var_dump($player->getName());
+            $firstElevenIds[] = $playerDataId;
+            $firstElevenNames[] = $player->getName();
         }
 
-        //var_dump($averagesForPositions);
-        //var_dump($playerByPosition[1]);
+        print_r(json_encode($firstElevenIds));
+        print_r(json_encode($firstElevenNames));
     }
 
     /**
@@ -254,7 +301,11 @@ class DataService
          */
         /** @var Player $topGoalkeeper */
         $topGoalkeeper = array_shift($playerByPosition);
-        $firstEleven[] = $topGoalkeeper->getId();
+        $firstEleven[$topGoalkeeper->getId()] = [
+            'id' => $topGoalkeeper->getId(),
+            'teamId' => $topGoalkeeper->getTeam()->getId(),
+            'playerName' => $topGoalkeeper->getName(),
+        ];
 
         return $firstEleven;
     }
@@ -281,7 +332,11 @@ class DataService
             $canBeAdded = $this->checkPlayerTeam($potentialPlayerTeamId, $firstEleven);
 
             if ($canBeAdded) {
-                $firstEleven[] = $potentialPlayer->getId();
+                $firstEleven[$potentialPlayer->getId()] = [
+                    'id' => $potentialPlayer->getId(),
+                    'teamId' => $potentialPlayer->getTeam()->getId(),
+                    'playerName' => $potentialPlayer->getName(),
+                ];
                 $pickedAttackers++;
             }
 
@@ -293,29 +348,58 @@ class DataService
 
     private function getFirstElevenMidfielders($playerByPosition, $firstEleven, $numberOfPlayers)
     {
-        return $firstEleven;
-    }
-
-    public function getFirstElevenDefenders($playerByPosition, $firstEleven, $numberOfPlayers)
-    {
-        //var_dump($playerByPosition);
-        $pickedDefenders = 0;
+        $pickedMidfielders = 0;
         $playerIndex = 0;
-        while ($pickedDefenders < $numberOfPlayers) {
-            //var_dump($pickedDefenders);
+        while ($pickedMidfielders < $numberOfPlayers) {
             # Get player with given index
             /** @var Player $potentialPlayer */
             $potentialPlayer = $playerByPosition[$playerIndex];
 
-            # Get player team
             $potentialPlayerTeamId = $potentialPlayer->getTeam()->getId();
             //var_dump($potentialPlayerTeamId);
 
             # Check if it is possible to get this player (no more than 3 per team)
             $canBeAdded = $this->checkPlayerTeam($potentialPlayerTeamId, $firstEleven);
-var_dump($canBeAdded);
+
             if ($canBeAdded) {
-                $firstEleven[] = $potentialPlayer->getId();
+                $firstEleven[$potentialPlayer->getId()] = [
+                    'id' => $potentialPlayer->getId(),
+                    'teamId' => $potentialPlayer->getTeam()->getId(),
+                    'playerName' => $potentialPlayer->getName(),
+                ];
+
+                $pickedMidfielders++;
+            }
+
+            $playerIndex++;
+        }
+
+
+        return $firstEleven;
+    }
+
+    public function getFirstElevenDefenders($playerByPosition, $firstEleven, $numberOfPlayers)
+    {
+        $pickedDefenders = 0;
+        $playerIndex = 0;
+        while ($pickedDefenders < $numberOfPlayers) {
+            # Get player with given index
+            /** @var Player $potentialPlayer */
+            $potentialPlayer = $playerByPosition[$playerIndex];
+
+            $potentialPlayerTeamId = $potentialPlayer->getTeam()->getId();
+            //var_dump($potentialPlayerTeamId);
+
+            # Check if it is possible to get this player (no more than 3 per team)
+            $canBeAdded = $this->checkPlayerTeam($potentialPlayerTeamId, $firstEleven);
+
+            if ($canBeAdded) {
+                $firstEleven[$potentialPlayer->getId()] = [
+                    'id' => $potentialPlayer->getId(),
+                    'teamId' => $potentialPlayer->getTeam()->getId(),
+                    'playerName' => $potentialPlayer->getName(),
+                ];
+
                 $pickedDefenders++;
             }
 
@@ -361,14 +445,14 @@ var_dump($canBeAdded);
     private function checkPlayerTeam($teamId, $firstEleven = [])
     {
         $grouped = [];
-        foreach ($firstEleven as $playerId) {
-            $teamId = $this->getPlayerTeamId($playerId);
-            $grouped[$teamId]++;
+        foreach ($firstEleven as $playerData) {
+            $playerDataTeamId = $playerData['teamId'];
+            $grouped[$playerDataTeamId]++;
         }
 
-        var_dump($grouped);
+        //var_dump($grouped);
 
-        if (array_key_exists($teamId, $grouped) && $grouped[$teamId] >= 3) {
+        if (array_key_exists($teamId, $grouped) && $grouped[$teamId] == 3) {
             return false;
         }
 

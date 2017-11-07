@@ -2,6 +2,7 @@
 
 namespace AppBundle\Controller;
 
+use AppBundle\Service\DataService;
 use AppBundle\Service\OptionsService;
 use AppBundle\Service\StatisticsService;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
@@ -17,26 +18,13 @@ class DefaultController extends Controller
      */
     public function indexAction(Request $request)
     {
-        // Create a stream
-        $opts = array(
-            'http' => array(
-                'method' => "GET",
-                'header' =>
-                    "Content-Type: application/json\r\n" .
-                    "X-Api-Key: 61AFF35F\r\n"
-            )
-        );
-
-        //$context = stream_context_create($opts);
-
-        // Open the file using the HTTP headers set above
-        //$file = file_get_contents('https://fpl.tlj.no/api/players', false, $context);
-        //$test = json_decode($file);
-        //var_dump($test[0]);
+        /** @var DataService $dataService */
+        $dataService = $this->get('mrgenius.dataservice');
+        $players = $dataService->getAllPlayers();
 
         // replace this example code with whatever you need
         return $this->render('default/index.html.twig', [
-            'base_dir' => realpath($this->getParameter('kernel.project_dir')) . DIRECTORY_SEPARATOR,
+            'players' => $players,
         ]);
     }
 

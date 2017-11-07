@@ -24,14 +24,11 @@ class Player
     private $creativity;
     private $threat;
     private $chanceOfPlayingNextRound;
-    /** @var Team $team */
-    private $team;
-    /** @var  Performance[] $performances */
-    private $performances;
 
-    /** @var  float */
-    private $piIndex;
-
+    /**
+     * Player constructor.
+     * @param $data
+     */
     public function __construct($data)
     {
         $this->setId($data['id']);
@@ -49,10 +46,6 @@ class Player
         $this->setCreativity($data['creativity']);
         $this->setThreat($data['threat']);
         $this->setChanceOfPlayingNextRound($data['chanceOfPayingNextRound']);
-        $this->setTeam($data['team']);
-        $this->setPerformances($data['performances']);
-
-        $this->calculatePiIndex();
     }
 
     /**
@@ -101,6 +94,30 @@ class Player
     public function setElementType($elementType)
     {
         $this->elementType = $elementType;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPositionName()
+    {
+        $positionName = '';
+        switch ($this->getElementType()) {
+            case 1:
+                $positionName = 'goalkeeper';
+                break;
+            case 2:
+                $positionName = 'defender';
+                break;
+            case 3:
+                $positionName = 'midfielder';
+                break;
+            case 4:
+                $positionName = 'attacker';
+                break;
+        }
+
+        return $positionName;
     }
 
     /**
@@ -301,50 +318,5 @@ class Player
     public function setChanceOfPlayingNextRound($chanceOfPlayingNextRound)
     {
         $this->chanceOfPlayingNextRound = $chanceOfPlayingNextRound;
-    }
-
-    /**
-     * @return Team
-     */
-    public function getTeam(): Team
-    {
-        return $this->team;
-    }
-
-    /**
-     * @param Team $team
-     */
-    public function setTeam(Team $team)
-    {
-        $this->team = $team;
-    }
-
-    /**
-     * @return Performance[]
-     */
-    public function getPerformances(): array
-    {
-        return $this->performances;
-    }
-
-    /**
-     * @param Performance[] $performances
-     */
-    public function setPerformances(array $performances)
-    {
-        $this->performances = $performances;
-    }
-
-    public function calculatePiIndex()
-    {
-        $this->piIndex = $this->getForm() * $this->getTotalPoints() * $this->getPointsPerGame();
-    }
-
-    /**
-     * @return float
-     */
-    public function getPiIndex()
-    {
-        return $this->piIndex;
     }
 }

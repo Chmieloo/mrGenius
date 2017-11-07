@@ -38,10 +38,25 @@ class DataController extends Controller
 
         $squad = $dataService->getSquad();
 
+        $json = ' 
+        {
+            "team_id": 5304993,
+  "event": 11,
+  "first_eleven": [260,394,285,374,264,245,13,97,382,255,247],
+  "substitutes": [420,367,63,151],
+  "captain": 285,
+  "vice_captain": 260,
+  "wildcard": false,
+  "bench_boost": false,
+  "free_hit": false,
+  "triple_captain": false
+}';
+
+echo $json;
+
         return $this->render('default/index.html.twig', [
             'players' => $players,
             'formation' => $formationString
         ]);
-
     }
 }
