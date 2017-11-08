@@ -14,6 +14,18 @@ use AppBundle\Service\ImportService;
 
 class DataController extends Controller
 {
+    public function importHistoryAction()
+    {
+        /** @var DataService $dataService */
+        $dataService = $this->get('mrgenius.dataservice');
+        /** @var ImportService $importService */
+        $importService = $this->get('mrgenius.importservice');
+
+        $players = $dataService->getAllPlayers();
+        //var_dump($players);
+        $importService->importHistoryByPlayers($players);
+    }
+
     /**
      * @param Request $request
      * @return \Symfony\Component\HttpFoundation\Response

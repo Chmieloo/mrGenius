@@ -4,410 +4,331 @@ namespace AppBundle\Service;
 
 use AppBundle\Model\Event;
 use AppBundle\Model\Player;
+use AppBundle\Model\PlayerMatchHistory;
 use Doctrine\DBAL\Driver\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
 
 class ImportService
 {
-    private $currentUri = 'https://fantasy.premierleague.com/drf/bootstrap-static';
+    /*
+    MULTI CURL REQUESTS
+    // build the individual requests, but do not execute them
+$ch_1 = curl_init('http://webservice.one.com/');
+$ch_2 = curl_init('http://webservice.two.com/');
+curl_setopt($ch_1, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch_2, CURLOPT_RETURNTRANSFER, true);
 
-    private $onlineData = null;
+// build the multi-curl handle, adding both $ch
+$mh = curl_multi_init();
+curl_multi_add_handle($mh, $ch_1);
+curl_multi_add_handle($mh, $ch_2);
 
-    /** @var Connection $db */
+// execute all queries simultaneously, and continue when all are complete
+  $running = null;
+  do {
+    curl_multi_exec($mh, $running);
+  } while ($running);
+
+//close the handles
+curl_multi_remove_handle($mh, $ch1);
+curl_multi_remove_handle($mh, $ch2);
+curl_multi_close($mh);
+
+// all of our requests are done, we can now access the results
+$response_1 = curl_multi_getcontent($ch_1);
+$response_2 = curl_multi_getcontent($ch_2);
+echo "$response_1 $response_2"; // output results
+     */
+
     private $db;
 
-    /** @var  OptionsService $optionsService */
-    private $optionsService;
+    private $playersMatches;
 
-    public function __construct(
-        Connection $db,
-        OptionsService $optionsService
-    )
+    private $playerMatchCount;
+
+    /**
+     * OptionsService constructor.
+     * @param Connection $db
+     */
+    public function __construct(Connection $db)
     {
         $this->db = $db;
-        $this->optionsService = $optionsService;
-
-        $this->loadOnlineData();
+        $this->getPlayersMatches();
     }
 
     /**
-     * Load online json file
+     * History for given player (append player id)
+     * @var string
      */
-    private function loadOnlineData()
-    {
-        /**
-         * Get last finished from URI
-         */
-        $uriData = file_get_contents($this->currentUri);
-        $this->onlineData = json_decode($uriData);
-    }
+    private static $fplPlayerHistoryFeedUrl = 'https://fantasy.premierleague.com/drf/element-summary/';
 
     /**
-     * @return int
+     * @param array $players
      */
-    public function getLastOnlineFinishedEventId()
+    public function importHistoryByPlayers(array $players)
     {
-        $events = $this->onlineData->{'events'};
-        $lastFinishedEventId = $this->getLastFinishedEvent($events);
-
-        return $lastFinishedEventId;
-    }
-
-    /**
-     * @param $events
-     * @return int
-     */
-    private function getLastFinishedEvent($events)
-    {
-        $lastFinished = 1;
-        foreach ($events as $event) {
-            if ($event->{'finished'} === false) {
-                break;
-            }
-            $eventId = $event->{'id'};
-            $lastFinished = $eventId;
-        }
-
-        return $lastFinished;
-    }
-
-    public function importOnlineData()
-    {
-        $lastOnlineFinishedId = $this->getLastOnlineFinishedEventId();
-
-        # Import events
-        $importEvents = $this->importEvents();
-
-        # Import fixtures
-
-        # Import players
-        $importPlayers = $this->importPlayers($lastOnlineFinishedId);
-
-        # import teams
-
-        # Import dictionaries
-
-        return $lastOnlineFinishedId;
-    }
-
-    /**
-     * @return bool
-     */
-    private function importEvents()
-    {
-        $events = $this->onlineData->{'events'};
-        /** @var Event[] $eventsModels */
-        $eventsModels = $this->generateEvents($events);
-
-        foreach ($eventsModels as $eventsModel) {
-            # Remove old data for this model
-            $this->deleteEventById($eventsModel->getId());
-
-            # Remove old data for this model
-            if (!$this->saveEvent($eventsModel)) {
-                return false;
-                break;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * @param $lastFinishedId
-     * @return bool
-     */
-    private function importPlayers($lastFinishedId)
-    {
-        $players = $this->onlineData->{'elements'};
-        /** @var Player[] $eventsModels */
-        $playersModels = $this->generatePlayers($players, $lastFinishedId);
-
-        foreach ($playersModels as $playersModel) {
-            # Remove old data for this model
-            $this->deletePlayerByIdAndEventId($playersModel->getId(), $lastFinishedId);
-
-            # Remove old data for this model
-            if (!$this->savePlayer($playersModel)) {
-                return false;
-                break;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * @param $id
-     */
-    private function deleteEventById($id)
-    {
-        $sql = "DELETE FROM events WHERE id = :id";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':id', $id);
-        $stmt->execute();
-    }
-
-    /**
-     * @param $id
-     * @param $eventId
-     */
-    private function deletePlayerByIdAndEventId($id, $eventId)
-    {
-        $sql = "DELETE FROM players WHERE id = :id AND event_id = :eventId";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':id', $id);
-        $stmt->bindValue(':eventId', $eventId);
-        $stmt->execute();
-    }
-
-    /**
-     * @param $eventsModel
-     * @return bool
-     */
-    function saveEvent($eventsModel)
-    {
-        $sql = "INSERT INTO events (
-                    id, 
-                    name, 
-                    average_entry_score, 
-                    finished,
-                    highest_score,
-                    is_previous,
-                    is_current,
-                    is_next
-                    ) VALUES (
-                    :id, 
-                    :name,  
-                    :average_entry_score, 
-                    :finished,
-                    :highest_score,
-                    :is_previous,
-                    :is_current,
-                    :is_next
-                    )";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':id', $eventsModel->getId());
-        $stmt->bindValue(':name', $eventsModel->getId());
-        $stmt->bindValue(':average_entry_score', $eventsModel->getAverageEntryScore());
-        $stmt->bindValue(':finished', $eventsModel->getFinished());
-        $stmt->bindValue(':highest_score', $eventsModel->getHighestScore());
-        $stmt->bindValue(':is_previous', $eventsModel->getisPrevious());
-        $stmt->bindValue(':is_current', $eventsModel->getisCurrent());
-        $stmt->bindValue(':is_next', $eventsModel->getisNext());
-
-        return $stmt->execute();
-    }
-
-
-    /**
-     * @param Player $playersModel
-     * @return bool
-     */
-    function savePlayer($playersModel)
-    {
-        $sql = "INSERT INTO players (
-                    event_id,
-                    id,
-                    photo,
-                    team_code,
-                    status,
-                    code,
-                    first_name,
-                    second_name,
-                    squad_number,
-                    news,
-                    now_cost,
-                    chance_of_playing_this_round,
-                    chance_of_playing_next_round,
-                    form,
-                    total_points,
-                    event_points,
-                    points_per_game,
-                    minutes,
-                    goals_scored,
-                    assists,
-                    clean_sheets,
-                    goals_conceded,
-                    own_goals,
-                    penalties_saved,
-                    penalties_missed,
-                    yellow_cards,
-                    red_cards,
-                    saves,
-                    bonus,
-                    bps,
-                    influence,
-                    creativity,
-                    threat,
-                    ict_index,
-                    element_type,
-                    team
-                    ) VALUES (
-                    :event_id,
-                    :id,
-                    :photo,
-                    :team_code,
-                    :status,
-                    :code,
-                    :first_name,
-                    :second_name,
-                    :squad_number,
-                    :news,
-                    :now_cost,
-                    :chance_of_playing_this_round,
-                    :chance_of_playing_next_round,
-                    :form,
-                    :total_points,
-                    :event_points,
-                    :points_per_game,
-                    :minutes,
-                    :goals_scored,
-                    :assists,
-                    :clean_sheets,
-                    :goals_conceded,
-                    :own_goals,
-                    :penalties_saved,
-                    :penalties_missed,
-                    :yellow_cards,
-                    :red_cards,
-                    :saves,
-                    :bonus,
-                    :bps,
-                    :influence,
-                    :creativity,
-                    :threat,
-                    :ict_index,
-                    :element_type,
-                    :team
-                    )";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':event_id', $playersModel->getEventId());
-        $stmt->bindValue(':id', $playersModel->getId());
-        $stmt->bindValue(':photo', $playersModel->getPhoto());
-        $stmt->bindValue(':team_code', $playersModel->getTeamCode());
-        $stmt->bindValue(':status', $playersModel->getStatus());
-        $stmt->bindValue(':code', $playersModel->getCode());
-        $stmt->bindValue(':first_name', $playersModel->getFirstName());
-        $stmt->bindValue(':second_name', $playersModel->getSecondName());
-        $stmt->bindValue(':squad_number', $playersModel->getSquadNumber());
-        $stmt->bindValue(':news', $playersModel->getNews());
-        $stmt->bindValue(':now_cost', $playersModel->getNowCost());
-        $stmt->bindValue(':chance_of_playing_this_round', $playersModel->getChanceOfPlayingThisRound());
-        $stmt->bindValue(':chance_of_playing_next_round', $playersModel->getChanceOfPlayingNextRound());
-        $stmt->bindValue(':form', $playersModel->getForm());
-        $stmt->bindValue(':total_points', $playersModel->getTotalPoints());
-        $stmt->bindValue(':event_points', $playersModel->getEventPoints());
-        $stmt->bindValue(':points_per_game', $playersModel->getPointsPerGame());
-        $stmt->bindValue(':minutes', $playersModel->getMinutes());
-        $stmt->bindValue(':goals_scored', $playersModel->getGoalsScored());
-        $stmt->bindValue(':assists', $playersModel->getAssists());
-        $stmt->bindValue(':clean_sheets', $playersModel->getCleanSheets());
-        $stmt->bindValue(':goals_conceded', $playersModel->getGoalsConceded());
-        $stmt->bindValue(':own_goals', $playersModel->getOwnGoals());
-        $stmt->bindValue(':penalties_saved', $playersModel->getPenaltiesSaved());
-        $stmt->bindValue(':penalties_missed', $playersModel->getPenaltiesMissed());
-        $stmt->bindValue(':yellow_cards', $playersModel->getYellowCards());
-        $stmt->bindValue(':red_cards', $playersModel->getRedCards());
-        $stmt->bindValue(':saves', $playersModel->getSaves());
-        $stmt->bindValue(':bonus', $playersModel->getBonus());
-        $stmt->bindValue(':bps', $playersModel->getBps());
-        $stmt->bindValue(':influence', $playersModel->getInfluence());
-        $stmt->bindValue(':creativity', $playersModel->getCreativity());
-        $stmt->bindValue(':threat', $playersModel->getThreat());
-        $stmt->bindValue(':ict_index', $playersModel->getIctIndex());
-        $stmt->bindValue(':element_type', $playersModel->getElementType());
-        $stmt->bindValue(':team', $playersModel->getTeam());
-
-        return $stmt->execute();
-    }
-
-    /**
-     * @param $events
-     * @return array
-     */
-    private function generateEvents($events)
-    {
-        $eventsArray = [];
-        foreach ($events as $event) {
-            $eventsArray[] = $this->generateEvent($event);
-        }
-
-        return $eventsArray;
-    }
-
-    public function generatePlayers($players, $lastFinishedId)
-    {
-        $playersArray = [];
+        # TODO TESTING $players = [$players[260]];
         foreach ($players as $player) {
-            $playersArray[] = $this->generatePlayer($player, $lastFinishedId);
-        }
+            $playerHistoryFeedUrl = static::$fplPlayerHistoryFeedUrl . $player->getId();
 
-        return $playersArray;
+            $singlePlayerHistory = [];
+            $ch =  curl_init($playerHistoryFeedUrl);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+            curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 3);
+            $feedContent = curl_exec($ch);
+
+            $historyContent = json_decode($feedContent);
+            $data = $historyContent->{'history'};
+
+            # If there are more history matches online than imported, execute the import
+            if (count($data) != $this->playerMatchCount) {
+                foreach ($data as $matchData) {
+                    $matchId = $matchData->{'id'};
+                    $teamId = $player->getTeamId();
+                    $singlePlayerHistory[$matchId] = new PlayerMatchHistory([
+                        'playerId' => $matchData->{'element'},
+                        'matchId' => $matchId,
+                        'teamId' => $teamId,
+                        'kickoffTime' => $matchData->{'kickoff_time'},
+                        'teamHScore' => $matchData->{'team_h_score'},
+                        'teamAScore' => $matchData->{'team_a_score'},
+                        'wasHome' => $matchData->{'was_home'},
+                        'round' => $matchData->{'round'},
+                        'totalPoints' => $matchData->{'total_points'},
+                        'value' => $matchData->{'value'},
+                        'transfersBalance' => $matchData->{'transfers_balance'},
+                        'selected' => $matchData->{'selected'},
+                        'transfersIn' => $matchData->{'transfers_in'},
+                        'transfersOut' => $matchData->{'transfers_out'},
+                        'loanedIn' => $matchData->{'loaned_in'},
+                        'loanedOut' => $matchData->{'loaned_out'},
+                        'minutes' => $matchData->{'minutes'},
+                        'goalsScored' => $matchData->{'goals_scored'},
+                        'assists' => $matchData->{'assists'},
+                        'cleanSheets' => $matchData->{'clean_sheets'},
+                        'goalsConceded' => $matchData->{'goals_conceded'},
+                        'ownGoals' => $matchData->{'own_goals'},
+                        'penaltiesSaved' => $matchData->{'penalties_saved'},
+                        'penaltiesMissed' => $matchData->{'penalties_missed'},
+                        'yellowCards' => $matchData->{'yellow_cards'},
+                        'redCards' => $matchData->{'red_cards'},
+                        'saves' => $matchData->{'saves'},
+                        'bonus' => $matchData->{'bonus'},
+                        'bps' => $matchData->{'bps'},
+                        'influence' => $matchData->{'influence'},
+                        'creativity' => $matchData->{'creativity'},
+                        'threat' => $matchData->{'threat'},
+                        'ictIndex' => $matchData->{'ict_index'},
+                        'eaIndex' => $matchData->{'ea_index'},
+                        'openPlayCrosses' => $matchData->{'open_play_crosses'},
+                        'bigChancesCreated' => $matchData->{'big_chances_created'},
+                        'clearancesBlocksInterceptions' => $matchData->{'clearances_blocks_interceptions'},
+                        'recoveries' => $matchData->{'recoveries'},
+                        'keyPasses' => $matchData->{'key_passes'},
+                        'tackles' => $matchData->{'tackles'},
+                        'winningGoals' => $matchData->{'winning_goals'},
+                        'attemptedPasses' => $matchData->{'attempted_passes'},
+                        'completedPasses' => $matchData->{'completed_passes'},
+                        'penaltiesConceded' => $matchData->{'penalties_conceded'},
+                        'bigChancesMissed' => $matchData->{'big_chances_missed'},
+                        'errorsLeadingToGoal' => $matchData->{'errors_leading_to_goal'},
+                        'errorsLeadingToGoalAttempt' => $matchData->{'errors_leading_to_goal_attempt'},
+                        'tackled' => $matchData->{'tackled'},
+                        'offside' => $matchData->{'offside'},
+                        'targetMissed' => $matchData->{'target_missed'},
+                        'fouls' => $matchData->{'fouls'},
+                        'dribbles' => $matchData->{'dribbles'},
+                        'element' => $matchData->{'element'},
+                        'fixture' => $matchData->{'fixture'},
+                        'opponentTeam' => $matchData->{'opponent_team'},
+                    ]);
+                }
+
+                $this->importPlayerHistory($singlePlayerHistory);
+            }
+        }
     }
 
     /**
-     * @param $data
-     * @return Event
+     * @param PlayerMatchHistory[] $singlePlayerHistory
+     * @return bool
      */
-    private function generateEvent($data)
+    private function importPlayerHistory($singlePlayerHistory)
     {
-        $event = new Event([
-            'id' => $data->{'id'},
-            'name' => $data->{'name'},
-            'deadlineTime' => $data->{'deadline_time'},
-            'averageEntryScore' => $data->{'average_entry_score'},
-            'isFinished' => $data->{'finished'},
-            'highestScore' => $data->{'highest_score'},
-            'isPrevious' => $data->{'is_previous'},
-            'isCurrent' => $data->{'is_current'},
-            'isNext' => $data->{'is_next'},
-        ]);
+        $sql = "INSERT INTO history (
+                        player_id,
+                        match_id,
+                        team_id,
+                        kickoff_time,
+                        team_h_score,
+                        team_a_score,
+                        was_home,
+                        round,
+                        total_points,
+                        value,
+                        transfers_balance,
+                        selected,
+                        transfers_in,
+                        transfers_out,
+                        loaned_in,
+                        loaned_out,
+                        minutes,
+                        goals_scored,
+                        assists,
+                        clean_sheets,
+                        goals_conceded,
+                        own_goals,
+                        penalties_saved,
+                        penalties_missed,
+                        yellow_cards,
+                        red_cards,
+                        saves,
+                        bonus,
+                        bps,
+                        influence,
+                        creativity,
+                        threat,
+                        ict_index,
+                        ea_index,
+                        open_play_crosses,
+                        big_chances_created,
+                        clearances_blocks_interceptions,
+                        recoveries,
+                        key_passes,
+                        tackles,
+                        winning_goals,
+                        attempted_passes,
+                        completed_passes,
+                        penalties_conceded,
+                        big_chances_missed,
+                        errors_leading_to_goal,
+                        errors_leading_to_goal_attempt,
+                        tackled,
+                        offside,
+                        target_missed,
+                        fouls,
+                        dribbles,
+                        element,
+                        fixture,
+                        opponent_team
+                    )";
 
-        return $event;
+        $sqlPartStart = "VALUES ";
+        $sqlPartMiddle = "";
+
+        /**
+         * We are getting array of past matches, we have to check if the match for this
+         * player is already in the history table.
+         */
+        foreach ($singlePlayerHistory as $matchData) {
+            $playerId = $matchData->getElement();
+            $matchId = $matchData->getMatchId();
+            $checkKey = $playerId . 'p-m' . $matchId;
+
+            if (!array_key_exists($checkKey, $this->playersMatches)) {
+                # Insert data into table (match player data)
+                # Construct string with values
+                $sqlPartMiddle .= "('";
+
+                $middle = [
+                    $matchData->getElement(),
+                    $matchData->getMatchId(),
+                    $matchData->getTeamId(),
+                    date('Y-m-d H:i:s', strtotime($matchData->getKickoffTime())),
+                    $matchData->getTeamHScore(),
+                    $matchData->getTeamAScore(),
+                    $matchData->getWasHome(),
+                    $matchData->getRound(),
+                    $matchData->getTotalPoints(),
+                    $matchData->getValue(),
+                    $matchData->getTransfersBalance(),
+                    $matchData->getSelected(),
+                    $matchData->getTransfersIn(),
+                    $matchData->getTransfersOut(),
+                    $matchData->getLoanedIn(),
+                    $matchData->getLoanedOut(),
+                    $matchData->getMinutes(),
+                    $matchData->getGoalsScored(),
+                    $matchData->getAssists(),
+                    $matchData->getCleanSheets(),
+                    $matchData->getGoalsConceded(),
+                    $matchData->getOwnGoals(),
+                    $matchData->getPenaltiesSaved(),
+                    $matchData->getPenaltiesMissed(),
+                    $matchData->getYellowCards(),
+                    $matchData->getRedCards(),
+                    $matchData->getSaves(),
+                    $matchData->getBonus(),
+                    $matchData->getBps(),
+                    $matchData->getInfluence(),
+                    $matchData->getCreativity(),
+                    $matchData->getThreat(),
+                    $matchData->getIctIndex(),
+                    $matchData->getEaIndex(),
+                    $matchData->getOpenPlayCrosses(),
+                    $matchData->getBigChancesCreated(),
+                    $matchData->getClearancesBlocksInterceptions(),
+                    $matchData->getRecoveries(),
+                    $matchData->getKeyPasses(),
+                    $matchData->getTackles(),
+                    $matchData->getWinningGoals(),
+                    $matchData->getAttemptedPasses(),
+                    $matchData->getCompletedPasses(),
+                    $matchData->getPenaltiesConceded(),
+                    $matchData->getBigChancesMissed(),
+                    $matchData->getErrorsLeadingToGoal(),
+                    $matchData->getErrorsLeadingToGoalAttempt(),
+                    $matchData->getTackled(),
+                    $matchData->getOffside(),
+                    $matchData->getTargetMissed(),
+                    $matchData->getFouls(),
+                    $matchData->getDribbles(),
+                    $matchData->getElement(),
+                    $matchData->getFixture(),
+                    $matchData->getOpponentTeam(),
+                ];
+
+                $sqlPartMiddle .= join("','", $middle);
+                $sqlPartMiddle .= "'),";
+            }
+        }
+
+        if ($sqlPartMiddle) {
+            $sql = $sql . $sqlPartStart . trim($sqlPartMiddle, ",");
+            //$stmt = $this->db->prepare($sql);
+            //return $stmt->execute();
+        }
     }
 
-    public function generatePlayer($data, $lastFinishedId)
+    /**
+     * Get helper array with player matches and their count separately
+     */
+    private function getPlayersMatches()
     {
-        $player = new Player([
-            'eventId' => $lastFinishedId,
-            'id' => $data->{'id'},
-            'photo' => $data->{'photo'},
-            'teamCode' => $data->{'team_code'},
-            'status' => $data->{'status'},
-            'code' => $data->{'code'},
-            'firstName' => $data->{'first_name'},
-            'secondName' => $data->{'second_name'},
-            'squadNumber' => $data->{'squad_number'},
-            'news' => $data->{'news'},
-            'nowCost' => $data->{'now_cost'},
-            'chanceOfPlayingThisRound' => $data->{'chance_of_playing_this_round'},
-            'chanceOfPayingNextRound' => $data->{'chance_of_playing_next_round'},
-            'form' => $data->{'form'},
-            'totalPoints' => $data->{'total_points'},
-            'eventPoints' => $data->{'event_points'},
-            'pointsPerGame' => $data->{'points_per_game'},
-            'minutes' => $data->{'minutes'},
-            'goalsScored' => $data->{'goals_scored'},
-            'assists' => $data->{'assists'},
-            'cleanSheets' => $data->{'clean_sheets'},
-            'goalsConceded' => $data->{'goals_conceded'},
-            'ownGoals' => $data->{'own_goals'},
-            'penaltiesSaved' => $data->{'penalties_saved'},
-            'penaltiesMissed' => $data->{'penalties_missed'},
-            'yellowCards' => $data->{'yellow_cards'},
-            'redCards' => $data->{'red_cards'},
-            'saves' => $data->{'saves'},
-            'bonus' => $data->{'bonus'},
-            'bps' => $data->{'bps'},
-            'influence' => $data->{'influence'},
-            'creativity' => $data->{'creativity'},
-            'threat' => $data->{'threat'},
-            'ictIndex' => $data->{'ict_index'},
-            'elementType' => $data->{'element_type'},
-            'teams' => $data->{'team'},
-        ]);
+        $array = [];
+        $playerMatchCount = [];
+        $query = $this->db->createQueryBuilder()
+            ->select(
+                'player_id as playerId',
+                'match_id as matchId'
+            )
+            ->from('history');
+        $result = $query->execute()->fetchAll(\PDO::FETCH_ASSOC);
 
-        return $player;
+        if ($result) {
+            foreach ($result as $data) {
+                $playerId = $data['playerId'];
+                $matchId = $data['matchId'];
+                $key = $playerId . 'p-m' . $matchId;
+                $array[$key] = 1;
+                $playerMatchCount[$playerId]++;
+            }
+        }
+
+        $this->playersMatches = $array;
+        $this->playerMatchCount = $playerMatchCount;
     }
 }

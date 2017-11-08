@@ -2,6 +2,10 @@ mrgenius_index:
   path : /
   defaults:  { _controller: AppBundle:Default:index }
 
+mrgenius_history_import:
+  path : /history/import
+  defaults:  { _controller: AppBundle:Data:importHistory }
+
 mrgenius_info:
   path : /info
   defaults:  { _controller: AppBundle:Default:info }
@@ -9,10 +13,6 @@ mrgenius_info:
 mrgenius_update:
   path : /update
   defaults:  { _controller: AppBundle:Default:update }
-
-mrgenius_import:
-  path : /import
-  defaults:  { _controller: AppBundle:Default:import }
 
 mrgenius_statistics_positions:
   path : /statistics/positions
