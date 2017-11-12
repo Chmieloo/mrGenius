@@ -2,22 +2,22 @@ mrgenius_index:
   path : /
   defaults:  { _controller: AppBundle:Default:index }
 
-mrgenius_history_import:
-  path : /history/import
+mrgenius_prediction_goalkeepers:
+  path : /goalkeepers
+  defaults:  { _controller: AppBundle:Default:predictGoalkeepers }
+
+mrgenius_prediction_attackers:
+  path : /attackers
+  defaults:  { _controller: AppBundle:Default:predictAttackers }
+
+mrgenius_import_history:
+  path : /import/history
   defaults:  { _controller: AppBundle:Data:importHistory }
 
-mrgenius_info:
-  path : /info
-  defaults:  { _controller: AppBundle:Default:info }
+mrgenius_import_teams:
+  path : /import/teams
+  defaults:  { _controller: AppBundle:Data:importTeams }
 
-mrgenius_update:
-  path : /update
-  defaults:  { _controller: AppBundle:Default:update }
-
-mrgenius_statistics_positions:
-  path : /statistics/positions
-  defaults:  { _controller: AppBundle:Statistics:positions }
-
-mrgenius_recommendations:
-  path : /recommendations
-  defaults:  { _controller: AppBundle:Default:recommendations }
+mrgenius_import_players:
+  path : /import/players
+  defaults:  { _controller: AppBundle:Data:importPlayers }

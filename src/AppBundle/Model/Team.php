@@ -7,7 +7,6 @@ class Team
     private $id;
     private $name;
     private $shortName;
-    private $strength;
     private $strengthAttackAway;
     private $strengthAttackHome;
     private $strengthDefenceAway;
@@ -24,7 +23,6 @@ class Team
         $this->setId($data['id']);
         $this->setName($data['name']);
         $this->setShortName($data['shortName']);
-        $this->setStrength($data['strength']);
         $this->setStrengthAttackAway($data['strengthAttackAway']);
         $this->setStrengthAttackHome($data['strengthAttackHome']);
         $this->setStrengthDefenceAway($data['strengthDefenceAway']);
@@ -81,22 +79,6 @@ class Team
     public function setShortName($shortName)
     {
         $this->shortName = $shortName;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getStrength()
-    {
-        return $this->strength;
-    }
-
-    /**
-     * @param mixed $strength
-     */
-    public function setStrength($strength)
-    {
-        $this->strength = $strength;
     }
 
     /**

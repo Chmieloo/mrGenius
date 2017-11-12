@@ -11,19 +11,18 @@ class Player
 
     private $id;
     private $teamId;
-    private $elementType;
+    private $type;
     private $firstName;
     private $secondName;
     private $photo;
-    private $form;
     private $nowCost;
-    private $totalPoints;
+    private $chanceOfPlayingNextRound;
+    private $form;
     private $pointsPerGame;
-    private $ictIndex;
     private $influence;
     private $creativity;
     private $threat;
-    private $chanceOfPlayingNextRound;
+    private $totalPoints;
 
     /**
      * Player constructor.
@@ -33,7 +32,7 @@ class Player
     {
         $this->setId($data['id']);
         $this->setTeamId($data['teamId']);
-        $this->setElementType($data['elementType']);
+        $this->setType($data['type']);
         $this->setFirstName($data['firstName']);
         $this->setSecondName($data['secondName']);
         $this->setPhoto($data['photo']);
@@ -41,11 +40,10 @@ class Player
         $this->setNowCost($data['nowCost']);
         $this->setTotalPoints($data['totalPoints']);
         $this->setPointsPerGame($data['pointsPerGame']);
-        $this->setIctIndex($data['ictIndex']);
         $this->setInfluence($data['influence']);
         $this->setCreativity($data['creativity']);
         $this->setThreat($data['threat']);
-        $this->setChanceOfPlayingNextRound($data['chanceOfPayingNextRound']);
+        $this->setChanceOfPlayingNextRound($data['chanceOfPlayingNextRound']);
     }
 
     /**
@@ -83,17 +81,17 @@ class Player
     /**
      * @return mixed
      */
-    public function getElementType()
+    public function getType()
     {
-        return $this->elementType;
+        return $this->type;
     }
 
     /**
-     * @param mixed $elementType
+     * @param mixed $type
      */
-    public function setElementType($elementType)
+    public function setType($type)
     {
-        $this->elementType = $elementType;
+        $this->type = $type;
     }
 
     /**
@@ -102,7 +100,7 @@ class Player
     public function getPositionName()
     {
         $positionName = '';
-        switch ($this->getElementType()) {
+        switch ($this->getType()) {
             case 1:
                 $positionName = 'goalkeeper';
                 break;
@@ -238,22 +236,6 @@ class Player
     public function setPointsPerGame($pointsPerGame)
     {
         $this->pointsPerGame = $pointsPerGame;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getIctIndex()
-    {
-        return $this->ictIndex;
-    }
-
-    /**
-     * @param mixed $ictIndex
-     */
-    public function setIctIndex($ictIndex)
-    {
-        $this->ictIndex = $ictIndex;
     }
 
     /**

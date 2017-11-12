@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+    <div>
+        <h1>Teams</h1>
+        <table class="table table-bordered table-sm" id="sort-table">
+            <thead>
+            <tr>
+                <th scope="col">Id</th>
+                <th scope="col">Name</th>
+                <th scope="col">Short Name</th>
+                <th scope="col">Strength overall home</th>
+                <th scope="col">Strength overall away</th>
+                <th scope="col">Strength attack home</th>
+                <th scope="col">Strength attack away</th>
+                <th scope="col">Strength defence home</th>
+                <th scope="col">Strength defence away</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for team in teams %}
+                <tr>
+                    <td>{{ team.id }}</td>
+                    <td>{{ team.name }}</td>
+                    <td>{{ team.shortName }}</td>
+                    <td>{{ team.strengthOverallHome }}</td>
+                    <td>{{ team.strengthOverallAway }}</td>
+                    <td>{{ team.strengthAttackHome }}</td>
+                    <td>{{ team.strengthAttackAway }}</td>
+                    <td>{{ team.strengthDefenceHome }}</td>
+                    <td>{{ team.strengthDefenceAway }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+{% endblock %}
+
+{% block stylesheets %}{% endblock %}

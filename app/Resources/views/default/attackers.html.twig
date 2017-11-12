@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+    <div id="goalkeepers">
+        <h1>Attackers prediction</h1>
+        <table class="table table-bordered table-sm" id="sort-table">
+            <thead>
+            <tr>
+                <th scope="col">Id</th>
+                <th scope="col">Name</th>
+                <th scope="col">Total influence</th>
+                <th scope="col">Value</th>
+                <th scope="col">Total points</th>
+                <th scope="col">Next match team strength</th>
+                <th scope="col">Next match opponent strength</th>
+                <th scope="col">Predicted influence</th>
+                <th scope="col">Predicted creativity</th>
+                <th scope="col">Predicted threat</th>
+                <th scope="col">Predicted points</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for player in players %}
+                <tr>
+                    <td>{{ player.id }}</td>
+                    <td>{{ player.firstName }} {{ player.secondName }}</td>
+                    <td>{{ player.influence }}</td>
+                    <td>{{ player.value }}</td>
+                    <td>{{ player.totalPoints }}</td>
+                    <td>{{ player.teamStrength }}</td>
+                    <td>{{ player.opponentStrength }}</td>
+                    <td>{{ player.predictedInfluence }}</td>
+                    <td>{{ player.predictedCreativity }}</td>
+                    <td>{{ player.predictedThreat }}</td>
+                    <td>{{ player.predictedPoints }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+{% endblock %}
+
+{% block stylesheets %}{% endblock %}

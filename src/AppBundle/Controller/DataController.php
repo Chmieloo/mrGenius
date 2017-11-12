@@ -14,6 +14,9 @@ use AppBundle\Service\ImportService;
 
 class DataController extends Controller
 {
+    /**
+     *
+     */
     public function importHistoryAction()
     {
         /** @var DataService $dataService */
@@ -22,8 +25,41 @@ class DataController extends Controller
         $importService = $this->get('mrgenius.importservice');
 
         $players = $dataService->getAllPlayers();
-        //var_dump($players);
         $importService->importHistoryByPlayers($players);
+    }
+
+    /**
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function importTeamsAction()
+    {
+        /** @var ImportService $importService */
+        $importService = $this->get('mrgenius.importservice');
+
+        /** @var Team[] $teams */
+        $teams = $importService->importTeams();
+
+        return $this->render('default/teams.html.twig', [
+            'teams' => $teams,
+        ]);
+
+    }
+
+    /**
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function importPlayersAction()
+    {
+        /** @var ImportService $importService */
+        $importService = $this->get('mrgenius.importservice');
+
+        /** @var Player[] $teams */
+        $players = $importService->importPlayers();
+
+        return $this->render('default/players.html.twig', [
+            'players' => $players,
+        ]);
+
     }
 
     /**
@@ -34,7 +70,7 @@ class DataController extends Controller
     {
         /** @var DataService $dataService */
         $dataService = $this->get('mrgenius.dataservice');
-        $playersObjects = $dataService->loadData();
+        $playersObjects = $dataService->loadAll();
 
         $players = $dataService->getPlayerByTypeFormatted($playersObjects);
         $formation = $dataService->getFormation($playersObjects);

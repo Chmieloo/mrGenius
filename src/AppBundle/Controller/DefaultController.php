@@ -2,6 +2,7 @@
 
 namespace AppBundle\Controller;
 
+use AppBundle\Model\Player;
 use AppBundle\Service\DataService;
 use AppBundle\Service\OptionsService;
 use AppBundle\Service\StatisticsService;
@@ -12,6 +13,8 @@ use AppBundle\Service\ImportService;
 
 class DefaultController extends Controller
 {
+    private $nextEvent = 12;
+
     /**
      * @param Request $request
      * @return \Symfony\Component\HttpFoundation\Response
@@ -20,85 +23,229 @@ class DefaultController extends Controller
     {
         /** @var DataService $dataService */
         $dataService = $this->get('mrgenius.dataservice');
-        $players = $dataService->getAllPlayers();
+        $players = $dataService->loadAll();
 
-        // replace this example code with whatever you need
         return $this->render('default/index.html.twig', [
             'players' => $players,
         ]);
     }
 
-    /**
-     * @param Request $request
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public function infoAction(Request $request)
+    public function predictGoalkeepersAction()
     {
-        /** @var OptionsService $optionsService */
-        $optionsService = $this->get('mrgenius.optionsservice');
-        $options = $optionsService->getOptionsData();
+        $tableData = [];
 
-        return $this->render('default/info.html.twig', ['options' => $options]);
-    }
+        /** @var DataService $dataService */
+        $dataService = $this->get('mrgenius.dataservice');
 
-    /**
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public function updateAction()
-    {
-        /** @var ImportService $importService */
-        $importService = $this->get('mrgenius.importservice');
-        $lastOnlineFinishedEventId = $importService->getLastOnlineFinishedEventId();
+        $goalkeeperHistory = $dataService->loadPlayersHistoryByType([Player::POSITION_GOALKEEPER]);
+        $goalkeeperFixtures = $dataService->loadPlayerFixturesByType([Player::POSITION_GOALKEEPER], $this->nextEvent);
 
-        /** @var OptionsService $optionsService */
-        $optionsService = $this->get('mrgenius.optionsservice');
-        $options = $optionsService->getOptionsData();
-        $lastImportedEventId = $options->getLastImportedEvent();
+        foreach ($goalkeeperHistory as $goalkeeperId => $goalkeeperData) {
+            $currentPlayerHistory = $goalkeeperHistory[$goalkeeperId];
+            $currentPlayerFixture = $goalkeeperFixtures[$goalkeeperId][$this->nextEvent];
 
-        if ($lastImportedEventId < $lastOnlineFinishedEventId) {
-            $importAvailable = true;
+            # Predict influence first
+            $predictedPlayerInfluence = $this->predictPlayerInfluence($currentPlayerHistory, $currentPlayerFixture);
+
+            if ($predictedPlayerInfluence) {
+                # Get historical data and create samples and point results
+                foreach ($currentPlayerHistory as $roundData) {
+                    $samples[] = [
+                        $roundData['influence'],
+                        $roundData['value'],
+                        $roundData['teamStrength'],
+                        $roundData['opponentStrength'],
+                    ];
+                    $data[] = $roundData['totalPoints'];
+                }
+
+                # Get fixture data
+                $predictionSample = [
+                    $predictedPlayerInfluence,
+                    $currentPlayerFixture['value'],
+                    $currentPlayerFixture['teamStrength'],
+                    $currentPlayerFixture['opponentStrength'],
+                ];
+
+                # Predict points
+                $prediction = $dataService->predictRegression($samples, $data, $predictionSample);
+
+                $currentPlayerFixture['predictedPerformance'] = $predictedPlayerInfluence;
+                $currentPlayerFixture['predictedPoints'] = $prediction;
+                $tableData[$goalkeeperId] = $currentPlayerFixture;
+            }
         }
 
-        return $this->render('default/update.html.twig', [
-            'lastOnline' => $lastOnlineFinishedEventId,
-            'lastImported' => $lastImportedEventId,
-            'importAvailable' => $importAvailable
+        return $this->render('default/goalkeepers.html.twig', [
+            'players' => $tableData,
+        ]);
+    }
+
+
+    public function predictAttackersAction()
+    {
+        $tableData = [];
+
+        /** @var DataService $dataService */
+        $dataService = $this->get('mrgenius.dataservice');
+
+        $attackerHistory = $dataService->loadPlayersHistoryByType([Player::POSITION_FORWARDER]);
+        $attackerFixtures = $dataService->loadPlayerFixturesByType([Player::POSITION_FORWARDER], $this->nextEvent);
+
+        foreach ($attackerHistory as $goalkeeperId => $goalkeeperData) {
+            $currentPlayerHistory = $attackerHistory[$goalkeeperId];
+            $currentPlayerFixture = $attackerFixtures[$goalkeeperId][$this->nextEvent];
+
+            # Predict i,c,t first
+            $predictedPlayerInfluence = $this->predictPlayerInfluence($currentPlayerHistory, $currentPlayerFixture);
+            $predictedPlayerCreativity = $this->predictPlayerCreativity($currentPlayerHistory, $currentPlayerFixture);
+            $predictedPlayerThreat = $this->predictPlayerThreat($currentPlayerHistory, $currentPlayerFixture);
+
+            if ($predictedPlayerInfluence) {
+                # Get historical data and create samples and point results
+                foreach ($currentPlayerHistory as $roundData) {
+                    $samples[] = [
+                        $roundData['influence'],
+                        $roundData['creativity'],
+                        $roundData['threat'],
+                        $roundData['value'],
+                        $roundData['teamStrength'],
+                        $roundData['opponentStrength'],
+                    ];
+                    $data[] = $roundData['totalPoints'];
+                }
+
+                # Get fixture data
+                $predictionSample = [
+                    $predictedPlayerInfluence,
+                    $predictedPlayerCreativity,
+                    $predictedPlayerThreat,
+                    $currentPlayerFixture['value'],
+                    $currentPlayerFixture['teamStrength'],
+                    $currentPlayerFixture['opponentStrength'],
+                ];
+
+                # Predict points
+                $prediction = $dataService->predictRegression($samples, $data, $predictionSample);
+
+                $currentPlayerFixture['predictedInfluence'] = $predictedPlayerInfluence;
+                $currentPlayerFixture['predictedCreativity'] = $predictedPlayerCreativity;
+                $currentPlayerFixture['predictedThreat'] = $predictedPlayerThreat;
+                $currentPlayerFixture['predictedPoints'] = $prediction;
+                $tableData[$goalkeeperId] = $currentPlayerFixture;
+            }
+        }
+
+        return $this->render('default/attackers.html.twig', [
+            'players' => $tableData,
         ]);
     }
 
     /**
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @param $playerHistory
+     * @param $playerFixture
+     * @return int|mixed
      */
-    public function importAction()
+    private function predictPlayerInfluence($playerHistory, $playerFixture)
     {
-        /** @var ImportService $importService */
-        $importService = $this->get('mrgenius.importservice');
-        /** @var OptionsService $optionsService */
-        $optionsService = $this->get('mrgenius.optionsservice');
+        /** @var DataService $dataService */
+        $dataService = $this->get('mrgenius.dataservice');
 
-        if ($lastImportedId = $importService->importOnlineData()) {
-            $optionsService->saveOption('last_imported_event', $lastImportedId);
+        $samples = [];
+        $data = [];
+        $prediction = 0;
+
+        foreach ($playerHistory as $roundData) {
+            $samples[] = [
+                $roundData['value'],
+                $roundData['teamStrength'],
+                $roundData['opponentStrength'],
+            ];
+            $data[] = $roundData['influence'];
         }
-        return $this->render('default/import.html.twig', []);
-    }
 
-    public function statsFormationPointsAction()
-    {
-        /** @var StatisticsService $statisticsService */
-        $statisticsService = $this->get('mrgenius.statisticsService');
+        $predictionSample = [
+            $playerFixture['value'],
+            $playerFixture['teamStrength'],
+            $playerFixture['opponentStrength'],
+        ];
+
+        if ($data && $samples) {
+            $prediction = $dataService->predictRegression($samples, $data, $predictionSample);
+        }
+
+        return $prediction;
     }
 
     /**
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @param $playerHistory
+     * @param $playerFixture
+     * @return int|mixed
      */
-    public function recommendationsAction()
+    private function predictPlayerCreativity($playerHistory, $playerFixture)
     {
-        /** @var StatisticsService $statisticsService */
-        $statisticsService = $this->get('mrgenius.statisticsservice');
-        $recommendedFormation = $statisticsService->getRecommendedFormation();
+        /** @var DataService $dataService */
+        $dataService = $this->get('mrgenius.dataservice');
 
-        return $this->render('default/recommendations.html.twig', [
-            'recommendedFormation' => $recommendedFormation
-        ]);
+        $samples = [];
+        $data = [];
+        $prediction = 0;
+
+        foreach ($playerHistory as $roundData) {
+            $samples[] = [
+                $roundData['value'],
+                $roundData['teamStrength'],
+                $roundData['opponentStrength'],
+            ];
+            $data[] = $roundData['creativity'];
+        }
+
+        $predictionSample = [
+            $playerFixture['value'],
+            $playerFixture['teamStrength'],
+            $playerFixture['opponentStrength'],
+        ];
+
+        if ($data && $samples) {
+            $prediction = $dataService->predictRegression($samples, $data, $predictionSample);
+        }
+
+        return $prediction;
+    }
+
+    /**
+     * @param $playerHistory
+     * @param $playerFixture
+     * @return int|mixed
+     */
+    private function predictPlayerThreat($playerHistory, $playerFixture)
+    {
+        /** @var DataService $dataService */
+        $dataService = $this->get('mrgenius.dataservice');
+
+        $samples = [];
+        $data = [];
+        $prediction = 0;
+
+        foreach ($playerHistory as $roundData) {
+            $samples[] = [
+                $roundData['value'],
+                $roundData['teamStrength'],
+                $roundData['opponentStrength'],
+            ];
+            $data[] = $roundData['threat'];
+        }
+
+        $predictionSample = [
+            $playerFixture['value'],
+            $playerFixture['teamStrength'],
+            $playerFixture['opponentStrength'],
+        ];
+
+        if ($data && $samples) {
+            $prediction = $dataService->predictRegression($samples, $data, $predictionSample);
+        }
+
+        return $prediction;
     }
 }
