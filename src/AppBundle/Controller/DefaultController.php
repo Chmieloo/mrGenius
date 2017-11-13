@@ -40,39 +40,44 @@ class DefaultController extends Controller
         $goalkeeperHistory = $dataService->loadPlayersHistoryByType([Player::POSITION_GOALKEEPER]);
         $goalkeeperFixtures = $dataService->loadPlayerFixturesByType([Player::POSITION_GOALKEEPER], $this->nextEvent);
 
+        //$goalkeeperHistory = [$goalkeeperHistory[260]];
+        //$goalkeeperFixtures = [$goalkeeperFixtures[260]];
         foreach ($goalkeeperHistory as $goalkeeperId => $goalkeeperData) {
-            $currentPlayerHistory = $goalkeeperHistory[$goalkeeperId];
-            $currentPlayerFixture = $goalkeeperFixtures[$goalkeeperId][$this->nextEvent];
+            $avgMinutes = $this->avgMinutes($goalkeeperData);
+            if ($avgMinutes > 10) {
+                $currentPlayerHistory = $goalkeeperHistory[$goalkeeperId];
+                $currentPlayerFixture = $goalkeeperFixtures[$goalkeeperId][$this->nextEvent];
 
-            # Predict influence first
-            $predictedPlayerInfluence = $this->predictPlayerInfluence($currentPlayerHistory, $currentPlayerFixture);
+                # Predict influence first
+                $predictedPlayerInfluence = $this->predictPlayerInfluence($currentPlayerHistory, $currentPlayerFixture);
 
-            if ($predictedPlayerInfluence) {
-                # Get historical data and create samples and point results
-                foreach ($currentPlayerHistory as $roundData) {
-                    $samples[] = [
-                        $roundData['influence'],
-                        $roundData['value'],
-                        $roundData['teamStrength'],
-                        $roundData['opponentStrength'],
+                if ($predictedPlayerInfluence) {
+                    # Get historical data and create samples and point results
+                    foreach ($currentPlayerHistory as $roundData) {
+                        $samples[] = [
+                            $roundData['influence'],
+                            $roundData['value'],
+                            $roundData['teamStrength'],
+                            $roundData['opponentStrength'],
+                        ];
+                        $data[] = $roundData['totalPoints'];
+                    }
+
+                    # Get fixture data
+                    $predictionSample = [
+                        $predictedPlayerInfluence,
+                        $currentPlayerFixture['value'],
+                        $currentPlayerFixture['teamStrength'],
+                        $currentPlayerFixture['opponentStrength'],
                     ];
-                    $data[] = $roundData['totalPoints'];
+
+                    # Predict points
+                    $prediction = $dataService->predictRegression($samples, $data, $predictionSample);
+
+                    $currentPlayerFixture['predictedPerformance'] = $predictedPlayerInfluence;
+                    $currentPlayerFixture['predictedPoints'] = $prediction;
+                    $tableData[$goalkeeperId] = $currentPlayerFixture;
                 }
-
-                # Get fixture data
-                $predictionSample = [
-                    $predictedPlayerInfluence,
-                    $currentPlayerFixture['value'],
-                    $currentPlayerFixture['teamStrength'],
-                    $currentPlayerFixture['opponentStrength'],
-                ];
-
-                # Predict points
-                $prediction = $dataService->predictRegression($samples, $data, $predictionSample);
-
-                $currentPlayerFixture['predictedPerformance'] = $predictedPlayerInfluence;
-                $currentPlayerFixture['predictedPoints'] = $prediction;
-                $tableData[$goalkeeperId] = $currentPlayerFixture;
             }
         }
 
@@ -81,6 +86,17 @@ class DefaultController extends Controller
         ]);
     }
 
+    private function avgMinutes($data)
+    {
+        $minutes = 0;
+        $eventCount = count($data);
+        foreach ($data as $datum) {
+            $minutes += $datum['minutes'];
+        }
+        $avgMinutes = (int)($minutes / $eventCount);
+
+        return $avgMinutes;
+    }
 
     public function predictAttackersAction()
     {
@@ -91,6 +107,72 @@ class DefaultController extends Controller
 
         $attackerHistory = $dataService->loadPlayersHistoryByType([Player::POSITION_FORWARDER]);
         $attackerFixtures = $dataService->loadPlayerFixturesByType([Player::POSITION_FORWARDER], $this->nextEvent);
+
+        //$attackerHistory = [$attackerHistory[303]];
+        //$attackerFixtures = [$attackerFixtures[303]];
+
+        foreach ($attackerHistory as $attackerId => $attackerData) {
+            $avgMinutes = $this->avgMinutes($attackerData);
+            if ($avgMinutes > 10) {
+                $currentPlayerHistory = $attackerHistory[$attackerId];
+                $currentPlayerFixture = $attackerFixtures[$attackerId][$this->nextEvent];
+
+                # Predict i,c,t first
+                $predictedPlayerInfluence = $this->predictPlayerInfluence($currentPlayerHistory, $currentPlayerFixture);
+                $predictedPlayerCreativity = $this->predictPlayerCreativity($currentPlayerHistory, $currentPlayerFixture);
+                $predictedPlayerThreat = $this->predictPlayerThreat($currentPlayerHistory, $currentPlayerFixture);
+
+                if ($predictedPlayerInfluence) {
+                    # Get historical data and create samples and point results
+                    foreach ($currentPlayerHistory as $roundData) {
+                        $samples[] = [
+                            $roundData['influence'],
+                            $roundData['creativity'],
+                            $roundData['threat'],
+                            $roundData['value'],
+                            $roundData['teamStrength'],
+                            $roundData['opponentStrength'],
+                        ];
+                        $data[] = $roundData['totalPoints'];
+                    }
+
+                    # Get fixture data
+                    $predictionSample = [
+                        $predictedPlayerInfluence,
+                        $predictedPlayerCreativity,
+                        $predictedPlayerThreat,
+                        $currentPlayerFixture['value'],
+                        $currentPlayerFixture['teamStrength'],
+                        $currentPlayerFixture['opponentStrength'],
+                    ];
+
+                    # Predict points
+                    $prediction = $dataService->predictRegression($samples, $data, $predictionSample);
+
+                    $currentPlayerFixture['predictedInfluence'] = $predictedPlayerInfluence;
+                    $currentPlayerFixture['predictedCreativity'] = $predictedPlayerCreativity;
+                    $currentPlayerFixture['predictedThreat'] = $predictedPlayerThreat;
+                    $currentPlayerFixture['predictedPoints'] = $prediction;
+                    $tableData[$attackerId] = $currentPlayerFixture;
+                }
+            }
+        }
+
+        return $this->render('default/attackers.html.twig', [
+            'players' => $tableData,
+        ]);
+    }
+
+
+    public function predictDefendersAction()
+    {
+        $tableData = [];
+
+        /** @var DataService $dataService */
+        $dataService = $this->get('mrgenius.dataservice');
+
+        $attackerHistory = $dataService->loadPlayersHistoryByType([Player::POSITION_DEFENDER]);
+        $attackerFixtures = $dataService->loadPlayerFixturesByType([Player::POSITION_DEFENDER], $this->nextEvent);
 
         foreach ($attackerHistory as $goalkeeperId => $goalkeeperData) {
             $currentPlayerHistory = $attackerHistory[$goalkeeperId];
@@ -136,7 +218,7 @@ class DefaultController extends Controller
             }
         }
 
-        return $this->render('default/attackers.html.twig', [
+        return $this->render('default/defenders.html.twig', [
             'players' => $tableData,
         ]);
     }

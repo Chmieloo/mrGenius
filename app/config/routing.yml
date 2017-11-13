@@ -10,6 +10,10 @@ mrgenius_prediction_attackers:
   path : /attackers
   defaults:  { _controller: AppBundle:Default:predictAttackers }
 
+mrgenius_prediction_defenders:
+  path : /defenders
+  defaults:  { _controller: AppBundle:Default:predictDefenders }
+
 mrgenius_import_history:
   path : /import/history
   defaults:  { _controller: AppBundle:Data:importHistory }

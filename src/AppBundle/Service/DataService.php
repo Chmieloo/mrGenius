@@ -185,6 +185,7 @@ class DataService
                 h.id as id,
                 h.player_id as playerId,
                 h.round as round,
+                h.minutes,
                 h.total_points as totalPoints,
                 h.was_home as wasHome,
                 h.influence as influence,
