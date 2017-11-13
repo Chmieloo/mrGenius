@@ -14,6 +14,10 @@ mrgenius_prediction_defenders:
   path : /defenders
   defaults:  { _controller: AppBundle:Default:predictDefenders }
 
+mrgenius_prediction_midfielders:
+  path : /midfielders
+  defaults:  { _controller: AppBundle:Default:predictMidfielders }
+
 mrgenius_import_history:
   path : /import/history
   defaults:  { _controller: AppBundle:Data:importHistory }

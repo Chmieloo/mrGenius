@@ -12,6 +12,8 @@ use Phpml\SupportVectorMachine\Kernel;
 
 class DataService
 {
+    private $nextEvent = 12;
+
     private $db;
 
     /**
@@ -204,6 +206,8 @@ class DataService
             ->join('h', 'teams', 't1', 't1.id = h.team_id')
             ->join('h', 'teams', 't2', 't2.id = h.opponent_team')
             ->where('p.type IN (:types)')
+            ->andWhere('p.chance_of_playing_next_round >= 75')
+            ->orWhere('p.chance_of_playing_next_round IS NULL')
             ->setParameter('types', $types, Connection::PARAM_INT_ARRAY);
 
         $result = $query->execute()->fetchAll(\PDO::FETCH_ASSOC);
@@ -230,5 +234,237 @@ class DataService
         $value = $regression->predict($nextSample);
 
         return $value;
+    }
+
+    /**
+     * @param $type
+     * @return array
+     */
+    public function predictPlayersPointsByType($type)
+    {
+        $tableData = [];
+
+        $playerHistory = $this->loadPlayersHistoryByType([$type]);
+        $playerFixtures = $this->loadPlayerFixturesByType([$type], $this->nextEvent);
+
+        foreach ($playerHistory as $attackerId => $attackerData) {
+            $avgMinutes = $this->avgMinutes($attackerData);
+            $avgPoints = $this->avgPoints($attackerData);
+            if ($avgMinutes > 10 && $avgPoints > 1) {
+                $currentPlayerHistory = $playerHistory[$attackerId];
+                $currentPlayerFixture = $playerFixtures[$attackerId][$this->nextEvent];
+
+                # Predict i,c,t first
+                list($predictedPlayerInfluence, $predictedPlayerCreativity, $predictedPlayerThreat) =
+                    $this->predictICT($currentPlayerHistory, $currentPlayerFixture);
+
+                if ($predictedPlayerInfluence) {
+                    # Get historical data and create samples and point results
+                    foreach ($currentPlayerHistory as $roundData) {
+                        $samples[] = [
+                            $roundData['influence'],
+                            $roundData['creativity'],
+                            $roundData['threat'],
+                            $roundData['value'],
+                            $roundData['teamStrength'],
+                            $roundData['opponentStrength'],
+                        ];
+                        $data[] = $roundData['totalPoints'];
+                    }
+
+                    # Get fixture data
+                    $predictionSample = [
+                        $predictedPlayerInfluence,
+                        $predictedPlayerCreativity,
+                        $predictedPlayerThreat,
+                        $currentPlayerFixture['value'],
+                        $currentPlayerFixture['teamStrength'],
+                        $currentPlayerFixture['opponentStrength'],
+                    ];
+
+                    # Predict points
+                    $prediction = $this->predictRegression($samples, $data, $predictionSample);
+
+                    $currentPlayerFixture['predictedInfluence'] = $predictedPlayerInfluence;
+                    $currentPlayerFixture['predictedCreativity'] = $predictedPlayerCreativity;
+                    $currentPlayerFixture['predictedThreat'] = $predictedPlayerThreat;
+                    $currentPlayerFixture['predictedPoints'] = $prediction;
+                    $tableData[$attackerId] = $currentPlayerFixture;
+                }
+            }
+        }
+
+        $this->db->executeQuery('DELETE FROM predictions WHERE type = ' . $type .  ' AND event_id = ' . $this->nextEvent);
+        $this->importPredictedData($tableData);
+
+        return $tableData;
+    }
+
+    /**
+     * @return array
+     */
+    public function predictGoalkeepersPoints()
+    {
+        $tableData = [];
+
+        $playerHistory = $this->loadPlayersHistoryByType([Player::POSITION_GOALKEEPER]);
+        $playerFixtures = $this->loadPlayerFixturesByType([Player::POSITION_GOALKEEPER], $this->nextEvent);
+
+        foreach ($playerHistory as $attackerId => $attackerData) {
+            $avgMinutes = $this->avgMinutes($attackerData);
+            $avgPoints = $this->avgPoints($attackerData);
+            if ($avgMinutes > 10 && $avgPoints > 1) {
+                $currentPlayerHistory = $playerHistory[$attackerId];
+                $currentPlayerFixture = $playerFixtures[$attackerId][$this->nextEvent];
+
+                # Predict i,c,t first
+                list($predictedPlayerInfluence, $predictedPlayerCreativity, $predictedPlayerThreat) =
+                    $this->predictICT($currentPlayerHistory, $currentPlayerFixture);
+
+                if ($predictedPlayerInfluence) {
+                    # Get historical data and create samples and point results
+                    foreach ($currentPlayerHistory as $roundData) {
+                        $samples[] = [
+                            $roundData['influence'],
+                            $roundData['value'],
+                            $roundData['teamStrength'],
+                            $roundData['opponentStrength'],
+                        ];
+                        $data[] = $roundData['totalPoints'];
+                    }
+
+                    # Get fixture data
+                    $predictionSample = [
+                        $predictedPlayerInfluence,
+                        $currentPlayerFixture['value'],
+                        $currentPlayerFixture['teamStrength'],
+                        $currentPlayerFixture['opponentStrength'],
+                    ];
+
+                    # Predict points
+                    $prediction = $this->predictRegression($samples, $data, $predictionSample);
+
+                    $currentPlayerFixture['predictedInfluence'] = $predictedPlayerInfluence;
+                    $currentPlayerFixture['predictedCreativity'] = $predictedPlayerCreativity;
+                    $currentPlayerFixture['predictedThreat'] = $predictedPlayerThreat;
+                    $currentPlayerFixture['predictedPoints'] = $prediction;
+                    $tableData[$attackerId] = $currentPlayerFixture;
+                }
+            }
+        }
+
+        $this->db->executeQuery('DELETE FROM predictions WHERE type = 1 AND event_id = ' . $this->nextEvent);
+        $this->importPredictedData($tableData);
+
+        return $tableData;
+    }
+
+    /**
+     * @param $data
+     * @return int
+     */
+    private function avgMinutes($data)
+    {
+        $minutes = 0;
+        $eventCount = count($data);
+        foreach ($data as $datum) {
+            $minutes += $datum['minutes'];
+        }
+        $avgMinutes = (int)($minutes / $eventCount);
+
+        return $avgMinutes;
+    }
+
+    /**
+     * @param $data
+     * @return int
+     */
+    private function avgPoints($data)
+    {
+        $totalPoints = 0;
+        $eventCount = count($data);
+        foreach ($data as $datum) {
+            $totalPoints += $datum['totalPoints'];
+        }
+        $avgPoints = (int)($totalPoints / $eventCount);
+
+        return $avgPoints;
+    }
+
+    private function predictICT($playerHistory, $playerFixture)
+    {
+        $samples = [];
+        $predictionI = $predictionC = $predictionT = 0;
+        $dataI = [];
+        $dataC = [];
+        $dataT = [];
+
+        foreach ($playerHistory as $roundData) {
+            $samples[] = [
+                $roundData['value'],
+                $roundData['teamStrength'],
+                $roundData['opponentStrength'],
+            ];
+            $dataI[] = $roundData['influence'];
+            $dataC[] = $roundData['creativity'];
+            $dataT[] = $roundData['threat'];
+        }
+
+        $predictionSample = [
+            $playerFixture['value'],
+            $playerFixture['teamStrength'],
+            $playerFixture['opponentStrength'],
+        ];
+
+        if ($samples) {
+            if ($dataI) {
+                $predictionI = $this->predictRegression($samples, $dataI, $predictionSample);
+            }
+            if ($dataC) {
+                $predictionC = $this->predictRegression($samples, $dataC, $predictionSample);
+            }
+            if ($dataT) {
+                $predictionT = $this->predictRegression($samples, $dataT, $predictionSample);
+            }
+        }
+
+        return [$predictionI, $predictionC, $predictionT];
+    }
+
+    /**
+     * @param $data
+     * @return bool
+     */
+    private function importPredictedData($data)
+    {
+        $sql = "INSERT INTO predictions (
+                        event_id,
+                        player_id,
+                        team_id,
+                        type,
+                        pi,
+                        pc,
+                        pt,
+                        pp,
+                        ap
+                    ) VALUES ";
+
+        foreach ($data as $predictionForPlayer) {
+            $sql .=
+                "(" . $this->nextEvent . "," .
+                $predictionForPlayer['playerId'] . "," .
+                $predictionForPlayer['teamId'] . "," .
+                $predictionForPlayer['type'] . ",'" .
+                $predictionForPlayer['predictedInfluence'] . "','" .
+                $predictionForPlayer['predictedCreativity'] . "','" .
+                $predictionForPlayer['predictedThreat'] . "','" .
+                $predictionForPlayer['predictedPoints'] . "', 0),";
+        }
+
+        $sql = trim($sql, ",");
+
+        $stmt = $this->db->prepare($sql);
+
+        return $stmt->execute();
     }
 }

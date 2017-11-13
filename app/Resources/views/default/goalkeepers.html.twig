@@ -14,8 +14,8 @@
                 <th scope="col">Total points</th>
                 <th scope="col">Next match team strength</th>
                 <th scope="col">Next match opponent strength</th>
-                <th scope="col">Predicted performance</th>
-                <th scope="col">Predicted points</th>
+                <th scope="col">PI</th>
+                <th scope="col">PP</th>
             </tr>
             </thead>
             <tbody>
@@ -28,7 +28,7 @@
                     <td>{{ player.totalPoints }}</td>
                     <td>{{ player.teamStrength }}</td>
                     <td>{{ player.opponentStrength }}</td>
-                    <td>{{ player.predictedPerformance }}</td>
+                    <td>{{ player.predictedInfluence }}</td>
                     <td>{{ player.predictedPoints }}</td>
                 </tr>
             {% endfor %}
