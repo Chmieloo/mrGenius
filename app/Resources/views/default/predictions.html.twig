@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+    <div id="goalkeepers">
+        <h1>Current state</h1>
+        <table class="table table-bordered table-sm" id="sort-table">
+            <thead>
+            <tr>
+                <th scope="col">Event #</th>
+                <th scope="col">Player Id</th>
+                <th scope="col">Name</th>
+                <th scope="col">Cost</th>
+                <th scope="col">Team</th>
+                <th scope="col">Position</th>
+                <th scope="col">Form</th>
+                <th scope="col">Total Points</th>
+                <th scope="col">PPG</th>
+                <th scope="col">PI</th>
+                <th scope="col">PC</th>
+                <th scope="col">PT</th>
+                <th scope="col">PP</th>
+                <th scope="col">AP</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for player in players %}
+                <tr>
+                    <td>{{ player.eventId }}</td>
+                    <td>{{ player.playerId }}</td>
+                    <td>{{ player.secondName }}, {{ player.firstName }}</td>
+                    <td>{{ player.costNow }}</td>
+                    <td>{{ player.teamName }}</td>
+                    <td>{{ player.position }}</td>
+                    <td>{{ player.form }}</td>
+                    <td>{{ player.totalPoints }}</td>
+                    <td>{{ player.ppg }}</td>
+                    <td>{{ player.pi }}</td>
+                    <td>{{ player.pc }}</td>
+                    <td>{{ player.pt }}</td>
+                    <td>{{ player.pp }}</td>
+                    <td>{{ player.ap }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+{% endblock %}
+
+{% block stylesheets %}{% endblock %}

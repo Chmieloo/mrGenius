@@ -2,6 +2,10 @@ mrgenius_index:
   path : /
   defaults:  { _controller: AppBundle:Default:index }
 
+mrgenius_data_players:
+  path : /data/players
+  defaults:  { _controller: AppBundle:Data:players }
+
 mrgenius_prediction_goalkeepers:
   path : /goalkeepers
   defaults:  { _controller: AppBundle:Default:predictGoalkeepers }

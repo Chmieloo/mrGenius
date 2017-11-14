@@ -467,4 +467,35 @@ class DataService
 
         return $stmt->execute();
     }
+
+    public function getAllPredictions()
+    {
+        $query = $this->db->createQueryBuilder()
+            ->select('
+                pr.event_id as eventId,
+                pr.player_id as playerId,
+                pr.team_id as teamId,
+                pos.name as position,
+                pr.pi,
+                pr.pc,
+                pr.pt,
+                pr.pp,
+                pr.ap,
+                t.name as teamName,
+                p.first_name as firstName,
+                p.second_name as secondName,
+                p.now_cost as costNow,
+                p.total_points as totalPoints,
+                p.form as form,
+                p.ppg as ppg
+            ')
+            ->from('predictions', 'pr')
+            ->join('pr', 'teams', 't', 'pr.team_id = t.id')
+            ->join('pr', 'positions', 'pos', 'pos.id = pr.type')
+            ->join('pr', 'players', 'p', 'p.id = pr.player_id');
+
+        $result = $query->execute()->fetchAll(\PDO::FETCH_ASSOC);
+
+        return $result;
+    }
 }
