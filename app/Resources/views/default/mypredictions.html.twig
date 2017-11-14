@@ -7,7 +7,6 @@
         <table class="table table-bordered table-sm table-striped" id="sort-table">
             <thead class="thead-inverse">
             <tr>
-                <th scope="col">Event #</th>
                 <th scope="col">Player Id</th>
                 <th scope="col">Name</th>
                 <th scope="col">Cost</th>
@@ -26,7 +25,6 @@
             <tbody>
             {% for player in players %}
                 <tr>
-                    <td>{{ player.eventId }}</td>
                     <td>{{ player.playerId }}</td>
                     <td>{{ player.secondName }}, {{ player.firstName }}</td>
                     <td>{{ player.costNow }}</td>

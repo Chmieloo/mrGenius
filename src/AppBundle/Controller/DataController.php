@@ -48,7 +48,7 @@ class DataController extends Controller
     /**
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function playersAction()
+    public function nextAction()
     {
         /** @var DataService $dataService */
         $dataService = $this->get('mrgenius.dataservice');
@@ -59,7 +59,26 @@ class DataController extends Controller
         return $this->render('default/predictions.html.twig', [
             'players' => $players,
         ]);
+    }
 
+    /**
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function currentAction()
+    {
+        /** @var DataService $dataService */
+        $dataService = $this->get('mrgenius.dataservice');
+
+        # CALCULATION
+        /** @var Player[] $teams */
+        # $players = $dataService->getCurrentTeamPredictions();
+
+        /** @var Player[] $teams */
+        $players = $dataService->getMyTeamPredictions();
+
+        return $this->render('default/mypredictions.html.twig', [
+            'players' => $players,
+        ]);
     }
 
     /**

@@ -33,7 +33,7 @@ class DefaultController extends Controller
         /** @var DataService $dataService */
         $dataService = $this->get('mrgenius.dataservice');
 
-        $tableData = $dataService->predictGoalkeepersPoints();
+        $tableData = $dataService->predictPlayersPointsByType(Player::POSITION_GOALKEEPER);
 
         return $this->render('default/goalkeepers.html.twig', [
             'players' => $tableData,

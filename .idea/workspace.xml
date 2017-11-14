@@ -2,12 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f6c8b86e-6bd8-4492-8072-ff2266dfc347" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Resources/views/default/predictions.html.twig" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Resources/views/default/mypredictions.html.twig" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/dataSources/59b592cf-78ff-411b-964f-7ae4335367b7.xml" afterPath="$PROJECT_DIR$/.idea/dataSources/59b592cf-78ff-411b-964f-7ae4335367b7.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/Resources/views/base.html.twig" afterPath="$PROJECT_DIR$/app/Resources/views/base.html.twig" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/Resources/views/default/predictions.html.twig" afterPath="$PROJECT_DIR$/app/Resources/views/default/predictions.html.twig" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/config/routing.yml" afterPath="$PROJECT_DIR$/app/config/routing.yml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/AppBundle/Controller/DataController.php" afterPath="$PROJECT_DIR$/src/AppBundle/Controller/DataController.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/AppBundle/Controller/DefaultController.php" afterPath="$PROJECT_DIR$/src/AppBundle/Controller/DefaultController.php" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/AppBundle/Service/DataService.php" afterPath="$PROJECT_DIR$/src/AppBundle/Service/DataService.php" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -36,6 +38,18 @@
         <item name="mrgenius@0.0.0.0" type="e3449647:DbNodeDescriptor" />
         <item name="mrgenius" type="e3449647:DbNodeDescriptor" />
       </path>
+      <path>
+        <item name="" type="eadb38e5:DatabaseStructure$Root" />
+        <item name="mrgenius@0.0.0.0" type="e3449647:DbNodeDescriptor" />
+        <item name="mrgenius" type="e3449647:DbNodeDescriptor" />
+        <item name="myteam_predictions" type="e3449647:DbNodeDescriptor" />
+      </path>
+      <path>
+        <item name="" type="eadb38e5:DatabaseStructure$Root" />
+        <item name="mrgenius@0.0.0.0" type="e3449647:DbNodeDescriptor" />
+        <item name="mrgenius" type="e3449647:DbNodeDescriptor" />
+        <item name="predictions" type="e3449647:DbNodeDescriptor" />
+      </path>
     </expand>
     <select />
   </component>
@@ -44,16 +58,48 @@
       <file leaf-file-name="DataService.php" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/AppBundle/Service/DataService.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="137">
-              <caret line="474" column="0" lean-forward="false" selection-start-line="474" selection-start-column="0" selection-end-line="489" selection-end-column="28" />
+            <state relative-caret-position="231">
+              <caret line="680" column="22" lean-forward="false" selection-start-line="680" selection-start-column="22" selection-end-line="680" selection-end-column="22" />
               <folding>
                 <element signature="e#37#65#0#PHP" expanded="true" />
-                <marker date="1510697043809" expanded="true" signature="10441:10477" ph="DELETE FROM " />
-                <marker date="1510697043809" expanded="true" signature="10441:10508" ph="DELETE FROM " />
-                <marker date="1510697043809" expanded="true" signature="13087:13140" ph="DELETE FROM " />
-                <marker date="1510697043809" expanded="true" signature="13087:13141" ph="DELETE FROM " />
-                <marker date="1510697043809" expanded="true" signature="15318:15643" ph="INSERT INTO predictions... " />
+                <element signature="e#4065#5837#0#PHP" expanded="false" />
+                <element signature="e#5843#7454#0#PHP" expanded="false" />
+                <element signature="e#7460#8970#0#PHP" expanded="false" />
+                <element signature="e#8976#10767#0#PHP" expanded="false" />
+                <marker date="1510700683130" expanded="true" signature="18977:19013" ph="DELETE FROM " />
+                <marker date="1510700683130" expanded="true" signature="18977:19044" ph="DELETE FROM " />
+                <marker date="1510700683130" expanded="true" signature="21221:21546" ph="INSERT INTO predictions... " />
+                <marker date="1510700683130" expanded="true" signature="22366:22664" ph="INSERT INTO myteam_predictions... " />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="mypredictions.html.twig" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/app/Resources/views/default/mypredictions.html.twig">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="390">
+              <caret line="26" column="20" lean-forward="false" selection-start-line="26" selection-start-column="20" selection-end-line="26" selection-end-column="20" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="myteam_predictions" pinned="false" current-in-tab="false">
+        <entry file="das://table:/9139b182/59b592cf-78ff-411b-964f-7ae4335367b7/mrgenius.myteam_predictions">
+          <provider selected="true" editor-type-id="com.intellij.database.editor.DatabaseTableFileEditorProvider">
+            <state>
+              <filtering enabled="true" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="DefaultController.php" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/AppBundle/Controller/DefaultController.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="266">
+              <caret line="35" column="89" lean-forward="false" selection-start-line="35" selection-start-column="89" selection-end-line="35" selection-end-column="89" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -70,18 +116,28 @@
       <file leaf-file-name="console.sql" pinned="false" current-in-tab="false">
         <entry file="file://$APPLICATION_CONFIG_DIR$/consoles/db/59b592cf-78ff-411b-964f-7ae4335367b7/console.sql">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="255">
-              <caret line="17" column="103" lean-forward="false" selection-start-line="17" selection-start-column="103" selection-end-line="17" selection-end-column="103" />
+            <state relative-caret-position="45">
+              <caret line="3" column="20" lean-forward="true" selection-start-line="3" selection-start-column="20" selection-end-line="3" selection-end-column="20" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="predictions.html.twig" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/app/Resources/views/default/predictions.html.twig">
+      <file leaf-file-name="base.html.twig" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/Resources/views/base.html.twig">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="533">
-              <caret line="41" column="36" lean-forward="false" selection-start-line="41" selection-start-column="36" selection-end-line="41" selection-end-column="36" />
+            <state relative-caret-position="283">
+              <caret line="24" column="76" lean-forward="false" selection-start-line="24" selection-start-column="76" selection-end-line="24" selection-end-column="76" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="DataController.php" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/AppBundle/Controller/DataController.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="498">
+              <caret line="76" column="41" lean-forward="false" selection-start-line="76" selection-start-column="41" selection-end-line="76" selection-end-column="41" />
               <folding />
             </state>
           </provider>
@@ -135,7 +191,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/app/Resources/views/default/checkimport.twig" />
         <option value="$PROJECT_DIR$/app/Resources/views/default/update.twig" />
         <option value="$PROJECT_DIR$/app/Resources/views/default/info.html.twig" />
         <option value="$PROJECT_DIR$/web/app.php" />
@@ -178,14 +233,15 @@
         <option value="$PROJECT_DIR$/app/Resources/views/default/attackers.html.twig" />
         <option value="$PROJECT_DIR$/app/Resources/views/default/defenders.html.twig" />
         <option value="$PROJECT_DIR$/app/Resources/views/default/midfielders.html.twig" />
-        <option value="$PROJECT_DIR$/src/AppBundle/Controller/DefaultController.php" />
         <option value="$PROJECT_DIR$/app/Resources/views/default/goalkeepers.html.twig" />
-        <option value="$PROJECT_DIR$/app/config/routing.yml" />
+        <option value="$PROJECT_DIR$/src/AppBundle/Controller/DefaultController.php" />
+        <option value="$PROJECT_DIR$/app/Resources/views/default/predictions.html.twig" />
         <option value="$PROJECT_DIR$/app/Resources/views/base.html.twig" />
+        <option value="$PROJECT_DIR$/app/config/routing.yml" />
         <option value="$APPLICATION_CONFIG_DIR$/consoles/db/59b592cf-78ff-411b-964f-7ae4335367b7/console.sql" />
         <option value="$PROJECT_DIR$/src/AppBundle/Controller/DataController.php" />
         <option value="$PROJECT_DIR$/src/AppBundle/Service/DataService.php" />
-        <option value="$PROJECT_DIR$/app/Resources/views/default/predictions.html.twig" />
+        <option value="$PROJECT_DIR$/app/Resources/views/default/mypredictions.html.twig" />
       </list>
     </option>
   </component>
@@ -413,12 +469,12 @@
       <workItem from="1510562509846" duration="3707000" />
       <workItem from="1510588550680" duration="23000" />
       <workItem from="1510588593723" duration="7587000" />
-      <workItem from="1510675670207" duration="3380000" />
+      <workItem from="1510675670207" duration="6504000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="144682000" />
+    <option name="totallyTimeSpent" value="147806000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1280" height="714" extended-state="6" />
@@ -467,8 +523,6 @@
     </option>
   </component>
   <component name="editorHistoryManager">
-    <entry file="das://table:/9139b182/59b592cf-78ff-411b-964f-7ae4335367b7/mrgenius.players" />
-    <entry file="das://table:/9139b182/59b592cf-78ff-411b-964f-7ae4335367b7/mrgenius.players" />
     <entry file="das://table:/9139b182/59b592cf-78ff-411b-964f-7ae4335367b7/mrgenius.players" />
     <entry file="das://table:/9139b182/59b592cf-78ff-411b-964f-7ae4335367b7/mrgenius.players" />
     <entry file="file://$PROJECT_DIR$/src/AppBundle/Controller/StatisticsController.php">
@@ -562,7 +616,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="das://table:/9139b182/59b592cf-78ff-411b-964f-7ae4335367b7/mrgenius.history" />
     <entry file="das://table:/9139b182/59b592cf-78ff-411b-964f-7ae4335367b7/mrgenius.players" />
     <entry file="file://$PROJECT_DIR$/app/.htaccess">
       <provider selected="true" editor-type-id="text-editor">
@@ -671,31 +724,45 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/config/routing.yml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="75">
-          <caret line="5" column="22" lean-forward="false" selection-start-line="5" selection-start-column="22" selection-end-line="5" selection-end-column="22" />
-          <folding>
-            <marker date="1510675892991" expanded="true" signature="422:770" ph="mrgenius_…rt_history: &lt;2 keys&gt;" />
-          </folding>
+    <entry file="das://table:/9139b182/59b592cf-78ff-411b-964f-7ae4335367b7/mrgenius.positions">
+      <provider selected="true" editor-type-id="com.intellij.database.editor.DatabaseTableFileEditorProvider">
+        <state>
+          <filtering enabled="true" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/AppBundle/Controller/DefaultController.php">
+    <entry file="das://table:/9139b182/59b592cf-78ff-411b-964f-7ae4335367b7/mrgenius.history">
+      <provider selected="true" editor-type-id="com.intellij.database.editor.DatabaseTableFileEditorProvider">
+        <state>
+          <filtering enabled="true">
+            <filter text="player_id = 18" />
+          </filtering>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/Resources/views/default/predictions.html.twig">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="443">
-          <caret line="35" column="35" lean-forward="false" selection-start-line="35" selection-start-column="35" selection-end-line="35" selection-end-column="35" />
-          <folding>
-            <element signature="e#40#67#0#PHP" expanded="false" />
-          </folding>
+        <state relative-caret-position="105">
+          <caret line="7" column="40" lean-forward="false" selection-start-line="7" selection-start-column="40" selection-end-line="7" selection-end-column="40" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/Resources/views/base.html.twig">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="268">
-          <caret line="23" column="65" lean-forward="false" selection-start-line="23" selection-start-column="65" selection-end-line="23" selection-end-column="65" />
+        <state relative-caret-position="283">
+          <caret line="24" column="76" lean-forward="false" selection-start-line="24" selection-start-column="76" selection-end-line="24" selection-end-column="76" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/config/routing.yml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="150">
+          <caret line="10" column="50" lean-forward="false" selection-start-line="10" selection-start-column="50" selection-end-line="10" selection-end-column="50" />
+          <folding>
+            <marker date="1510699124630" expanded="true" signature="541:889" ph="mrgenius_…rt_history: &lt;2 keys&gt;" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -706,48 +773,59 @@
         </state>
       </provider>
     </entry>
-    <entry file="das://table:/9139b182/59b592cf-78ff-411b-964f-7ae4335367b7/mrgenius.positions">
+    <entry file="das://table:/9139b182/59b592cf-78ff-411b-964f-7ae4335367b7/mrgenius.myteam_predictions">
       <provider selected="true" editor-type-id="com.intellij.database.editor.DatabaseTableFileEditorProvider">
         <state>
           <filtering enabled="true" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/AppBundle/Controller/DataController.php">
+    <entry file="file://$APPLICATION_CONFIG_DIR$/consoles/db/59b592cf-78ff-411b-964f-7ae4335367b7/console.sql">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="366">
-          <caret line="58" column="49" lean-forward="false" selection-start-line="58" selection-start-column="49" selection-end-line="58" selection-end-column="49" />
+        <state relative-caret-position="45">
+          <caret line="3" column="20" lean-forward="true" selection-start-line="3" selection-start-column="20" selection-end-line="3" selection-end-column="20" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$APPLICATION_CONFIG_DIR$/consoles/db/59b592cf-78ff-411b-964f-7ae4335367b7/console.sql">
+    <entry file="file://$PROJECT_DIR$/src/AppBundle/Controller/DefaultController.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="255">
-          <caret line="17" column="103" lean-forward="false" selection-start-line="17" selection-start-column="103" selection-end-line="17" selection-end-column="103" />
+        <state relative-caret-position="266">
+          <caret line="35" column="89" lean-forward="false" selection-start-line="35" selection-start-column="89" selection-end-line="35" selection-end-column="89" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/AppBundle/Controller/DataController.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="498">
+          <caret line="76" column="41" lean-forward="false" selection-start-line="76" selection-start-column="41" selection-end-line="76" selection-end-column="41" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/AppBundle/Service/DataService.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="137">
-          <caret line="474" column="0" lean-forward="false" selection-start-line="474" selection-start-column="0" selection-end-line="489" selection-end-column="28" />
+        <state relative-caret-position="231">
+          <caret line="680" column="22" lean-forward="false" selection-start-line="680" selection-start-column="22" selection-end-line="680" selection-end-column="22" />
           <folding>
             <element signature="e#37#65#0#PHP" expanded="true" />
-            <marker date="1510697043809" expanded="true" signature="10441:10477" ph="DELETE FROM " />
-            <marker date="1510697043809" expanded="true" signature="10441:10508" ph="DELETE FROM " />
-            <marker date="1510697043809" expanded="true" signature="13087:13140" ph="DELETE FROM " />
-            <marker date="1510697043809" expanded="true" signature="13087:13141" ph="DELETE FROM " />
-            <marker date="1510697043809" expanded="true" signature="15318:15643" ph="INSERT INTO predictions... " />
+            <element signature="e#4065#5837#0#PHP" expanded="false" />
+            <element signature="e#5843#7454#0#PHP" expanded="false" />
+            <element signature="e#7460#8970#0#PHP" expanded="false" />
+            <element signature="e#8976#10767#0#PHP" expanded="false" />
+            <marker date="1510700683130" expanded="true" signature="18977:19013" ph="DELETE FROM " />
+            <marker date="1510700683130" expanded="true" signature="18977:19044" ph="DELETE FROM " />
+            <marker date="1510700683130" expanded="true" signature="21221:21546" ph="INSERT INTO predictions... " />
+            <marker date="1510700683130" expanded="true" signature="22366:22664" ph="INSERT INTO myteam_predictions... " />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/Resources/views/default/predictions.html.twig">
+    <entry file="file://$PROJECT_DIR$/app/Resources/views/default/mypredictions.html.twig">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="533">
-          <caret line="41" column="36" lean-forward="false" selection-start-line="41" selection-start-column="36" selection-end-line="41" selection-end-column="36" />
+        <state relative-caret-position="390">
+          <caret line="26" column="20" lean-forward="false" selection-start-line="26" selection-start-column="20" selection-end-line="26" selection-end-column="20" />
           <folding />
         </state>
       </provider>

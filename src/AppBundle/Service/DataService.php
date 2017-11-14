@@ -6,6 +6,7 @@ use AppBundle\Model\Element;
 use AppBundle\Model\Player;
 use AppBundle\Model\Team;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Types\Type;
 use Phpml\Regression\LeastSquares;
 use Phpml\Regression\SVR;
 use Phpml\SupportVectorMachine\Kernel;
@@ -221,6 +222,91 @@ class DataService
         return $playerHistory;
     }
 
+    public function loadPlayersHistoryByPlayerIds($playerIds)
+    {
+        $query = $this->db->createQueryBuilder()
+            ->select('
+                h.id as id,
+                h.player_id as playerId,
+                h.round as round,
+                h.minutes,
+                h.total_points as totalPoints,
+                h.was_home as wasHome,
+                h.influence as influence,
+                h.creativity as creativity,
+                h.threat as threat,
+                h.value as value,
+                p.influence as nowInfluence,
+                p.creativity as nowCreativity,
+                p.threat as nowThreat,
+                p.type,
+                if(h.was_home=1,t1.strength_overall_home,t1.strength_overall_away) as teamStrength,
+                if(h.was_home=1,t2.strength_overall_away,t2.strength_overall_home) as opponentStrength
+            ')
+            ->from('history', 'h')
+            ->join('h', 'players', 'p', 'p.id = h.player_id')
+            ->join('h', 'teams', 't1', 't1.id = h.team_id')
+            ->join('h', 'teams', 't2', 't2.id = h.opponent_team')
+            ->where('h.player_id IN (:playerIds)')
+            ->setParameter('playerIds', $playerIds, Connection::PARAM_INT_ARRAY);
+
+        $result = $query->execute()->fetchAll(\PDO::FETCH_ASSOC);
+
+        $playerHistory = [];
+        foreach ($result as $data) {
+            $playerId = $data['playerId'];
+            $playerHistory[$playerId][] = $data;
+        }
+
+        return $playerHistory;
+    }
+
+    public function loadPlayerFixturesByPlayerIds($playerIds, $eventId = 0)
+    {
+        $query = $this->db->createQueryBuilder()
+            ->select('
+              p.first_name as firstName,
+              p.second_name as secondName, 
+              p.total_points as totalPoints,
+              f.id as id,
+              f.event_id as eventId,
+              f.kickoff as kickoff,
+              f.player_id as playerId,
+              f.is_home as isHome,
+              p.influence as influence,
+              p.creativity as creativity,
+              p.threat as threat,
+              p.type as type,
+              p.now_cost as value,
+              p.team_id as teamId,
+              if(f.is_home=1,teamHome.strength_overall_home,teamAway.strength_overall_away) as teamStrength,
+              if(f.is_home=1,teamAway.strength_overall_away,teamHome.strength_overall_home) as opponentStrength
+            ')
+            ->from('fixtures', 'f')
+            ->join('f', 'players', 'p', 'p.id = f.player_id')
+            ->join('f', 'teams', 'teamHome', 'teamHome.id = f.team_h')
+            ->join('f', 'teams', 'teamAway', 'teamAway.id = f.team_a')
+            ->where('p.id IN (:playerIds)')
+            ->setParameter('playerIds', $playerIds, Connection::PARAM_INT_ARRAY);
+
+        if ($eventId) {
+            $query->addSelect('f.event_id as eventId')
+                ->andWhere('f.event_id = :eventId')
+                ->setParameter('eventId', $eventId);
+        }
+
+        $result = $query->execute()->fetchAll(\PDO::FETCH_ASSOC);
+
+        $playerFixtures = [];
+        foreach ($result as $data) {
+            $playerId = $data['playerId'];
+            $eventId = $data['eventId'];
+            $playerFixtures[$playerId][$eventId] = $data;
+        }
+
+        return $playerFixtures;
+    }
+
     /**
      * @param $samples
      * @param $data
@@ -234,6 +320,101 @@ class DataService
         $value = $regression->predict($nextSample);
 
         return $value;
+    }
+
+    public function getCurrentTeamPredictions()
+    {
+        $playerIds = [260, 264, 245, 382, 97, 13, 255, 247, 374, 285, 394, 420, 367, 63, 151];
+
+        $tableData = [];
+
+        $playerHistory = $this->loadPlayersHistoryByPlayerIds($playerIds);
+        $playerFixtures = $this->loadPlayerFixturesByPlayerIds($playerIds, $this->nextEvent);
+
+        foreach ($playerHistory as $attackerId => $attackerData) {
+            $type = $attackerData['type'];
+            $avgMinutes = $this->avgMinutes($attackerData);
+            $avgPoints = $this->avgPoints($attackerData);
+            if ($avgMinutes > 10 && $avgPoints > 1) {
+                $currentPlayerHistory = $playerHistory[$attackerId];
+                $currentPlayerFixture = $playerFixtures[$attackerId][$this->nextEvent];
+
+                # Predict i,c,t first
+                list($predictedPlayerInfluence, $predictedPlayerCreativity, $predictedPlayerThreat) =
+                    $this->predictICT($currentPlayerHistory, $currentPlayerFixture);
+
+                if ($predictedPlayerInfluence) {
+                    # Get historical data and create samples and point results
+                    foreach ($currentPlayerHistory as $roundData) {
+                        if ($type == Player::POSITION_GOALKEEPER) {
+                            $samples[] = [
+                                $roundData['influence'],
+                                $roundData['value'],
+                                $roundData['teamStrength'],
+                                $roundData['opponentStrength'],
+                            ];
+                        } else {
+                            $samples[] = [
+                                $roundData['influence'],
+                                $roundData['creativity'],
+                                $roundData['threat'],
+                                $roundData['value'],
+                                $roundData['teamStrength'],
+                                $roundData['opponentStrength'],
+                            ];
+                        }
+                        $data[] = $roundData['totalPoints'];
+                    }
+
+                    # Get fixture data
+                    if ($type == Player::POSITION_GOALKEEPER) {
+                        $predictionSample = [
+                            $predictedPlayerInfluence,
+                            $currentPlayerFixture['value'],
+                            $currentPlayerFixture['teamStrength'],
+                            $currentPlayerFixture['opponentStrength'],
+                        ];
+                    } else {
+                        $predictionSample = [
+                            $predictedPlayerInfluence,
+                            $predictedPlayerCreativity,
+                            $predictedPlayerThreat,
+                            $currentPlayerFixture['value'],
+                            $currentPlayerFixture['teamStrength'],
+                            $currentPlayerFixture['opponentStrength'],
+                        ];
+                    }
+
+                    # Predict points
+                    $prediction = $this->predictRegression($samples, $data, $predictionSample);
+
+                    $currentPlayerFixture['predictedInfluence'] = $predictedPlayerInfluence;
+                    $currentPlayerFixture['predictedCreativity'] = $predictedPlayerCreativity;
+                    $currentPlayerFixture['predictedThreat'] = $predictedPlayerThreat;
+                    $currentPlayerFixture['predictedPoints'] = $prediction;
+                    $tableData[$attackerId] = $currentPlayerFixture;
+                }
+            }
+        }
+
+        $this->db->executeQuery('truncate table myteam_predictions');
+        $this->importMyTeamPredictedData($tableData);
+
+        return $tableData;
+    }
+
+    public function predictPlayersPointsByPlayerIds()
+    {
+        $playerIds = [];
+        $myTeam = "https://fantasy.premierleague.com/drf/my-team/5304993/";
+        $content = file_get_contents($myTeam);
+        $objectContent = json_decode($content);
+        $players = $objectContent->{'picks'};
+        foreach ($players as $item) {
+            $playerIds[] = $item->{'element'};
+        }
+
+        var_dump($playerIds);
     }
 
     /**
@@ -261,26 +442,44 @@ class DataService
                 if ($predictedPlayerInfluence) {
                     # Get historical data and create samples and point results
                     foreach ($currentPlayerHistory as $roundData) {
-                        $samples[] = [
-                            $roundData['influence'],
-                            $roundData['creativity'],
-                            $roundData['threat'],
-                            $roundData['value'],
-                            $roundData['teamStrength'],
-                            $roundData['opponentStrength'],
-                        ];
+                        if ($type == Player::POSITION_GOALKEEPER) {
+                            $samples[] = [
+                                $roundData['influence'],
+                                $roundData['value'],
+                                $roundData['teamStrength'],
+                                $roundData['opponentStrength'],
+                            ];
+                        } else {
+                            $samples[] = [
+                                $roundData['influence'],
+                                $roundData['creativity'],
+                                $roundData['threat'],
+                                $roundData['value'],
+                                $roundData['teamStrength'],
+                                $roundData['opponentStrength'],
+                            ];
+                        }
                         $data[] = $roundData['totalPoints'];
                     }
 
                     # Get fixture data
-                    $predictionSample = [
-                        $predictedPlayerInfluence,
-                        $predictedPlayerCreativity,
-                        $predictedPlayerThreat,
-                        $currentPlayerFixture['value'],
-                        $currentPlayerFixture['teamStrength'],
-                        $currentPlayerFixture['opponentStrength'],
-                    ];
+                    if ($type == Player::POSITION_GOALKEEPER) {
+                        $predictionSample = [
+                            $predictedPlayerInfluence,
+                            $currentPlayerFixture['value'],
+                            $currentPlayerFixture['teamStrength'],
+                            $currentPlayerFixture['opponentStrength'],
+                        ];
+                    } else {
+                        $predictionSample = [
+                            $predictedPlayerInfluence,
+                            $predictedPlayerCreativity,
+                            $predictedPlayerThreat,
+                            $currentPlayerFixture['value'],
+                            $currentPlayerFixture['teamStrength'],
+                            $currentPlayerFixture['opponentStrength'],
+                        ];
+                    }
 
                     # Predict points
                     $prediction = $this->predictRegression($samples, $data, $predictionSample);
@@ -295,65 +494,6 @@ class DataService
         }
 
         $this->db->executeQuery('DELETE FROM predictions WHERE type = ' . $type .  ' AND event_id = ' . $this->nextEvent);
-        $this->importPredictedData($tableData);
-
-        return $tableData;
-    }
-
-    /**
-     * @return array
-     */
-    public function predictGoalkeepersPoints()
-    {
-        $tableData = [];
-
-        $playerHistory = $this->loadPlayersHistoryByType([Player::POSITION_GOALKEEPER]);
-        $playerFixtures = $this->loadPlayerFixturesByType([Player::POSITION_GOALKEEPER], $this->nextEvent);
-
-        foreach ($playerHistory as $attackerId => $attackerData) {
-            $avgMinutes = $this->avgMinutes($attackerData);
-            $avgPoints = $this->avgPoints($attackerData);
-            if ($avgMinutes > 10 && $avgPoints > 1) {
-                $currentPlayerHistory = $playerHistory[$attackerId];
-                $currentPlayerFixture = $playerFixtures[$attackerId][$this->nextEvent];
-
-                # Predict i,c,t first
-                list($predictedPlayerInfluence, $predictedPlayerCreativity, $predictedPlayerThreat) =
-                    $this->predictICT($currentPlayerHistory, $currentPlayerFixture);
-
-                if ($predictedPlayerInfluence) {
-                    # Get historical data and create samples and point results
-                    foreach ($currentPlayerHistory as $roundData) {
-                        $samples[] = [
-                            $roundData['influence'],
-                            $roundData['value'],
-                            $roundData['teamStrength'],
-                            $roundData['opponentStrength'],
-                        ];
-                        $data[] = $roundData['totalPoints'];
-                    }
-
-                    # Get fixture data
-                    $predictionSample = [
-                        $predictedPlayerInfluence,
-                        $currentPlayerFixture['value'],
-                        $currentPlayerFixture['teamStrength'],
-                        $currentPlayerFixture['opponentStrength'],
-                    ];
-
-                    # Predict points
-                    $prediction = $this->predictRegression($samples, $data, $predictionSample);
-
-                    $currentPlayerFixture['predictedInfluence'] = $predictedPlayerInfluence;
-                    $currentPlayerFixture['predictedCreativity'] = $predictedPlayerCreativity;
-                    $currentPlayerFixture['predictedThreat'] = $predictedPlayerThreat;
-                    $currentPlayerFixture['predictedPoints'] = $prediction;
-                    $tableData[$attackerId] = $currentPlayerFixture;
-                }
-            }
-        }
-
-        $this->db->executeQuery('DELETE FROM predictions WHERE type = 1 AND event_id = ' . $this->nextEvent);
         $this->importPredictedData($tableData);
 
         return $tableData;
@@ -468,6 +608,42 @@ class DataService
         return $stmt->execute();
     }
 
+    /**
+     * @param $data
+     * @return bool
+     */
+    private function importMyTeamPredictedData($data)
+    {
+        $sql = "INSERT INTO myteam_predictions (
+                        player_id,
+                        team_id,
+                        type,
+                        pi,
+                        pc,
+                        pt,
+                        pp,
+                        ap
+                    ) VALUES ";
+
+        foreach ($data as $predictionForPlayer) {
+            $sql .=
+                "(" .
+                $predictionForPlayer['playerId'] . "," .
+                $predictionForPlayer['teamId'] . "," .
+                $predictionForPlayer['type'] . ",'" .
+                $predictionForPlayer['predictedInfluence'] . "','" .
+                $predictionForPlayer['predictedCreativity'] . "','" .
+                $predictionForPlayer['predictedThreat'] . "','" .
+                $predictionForPlayer['predictedPoints'] . "', 0),";
+        }
+
+        $sql = trim($sql, ",");
+
+        $stmt = $this->db->prepare($sql);
+
+        return $stmt->execute();
+    }
+
     public function getAllPredictions()
     {
         $query = $this->db->createQueryBuilder()
@@ -490,6 +666,36 @@ class DataService
                 p.ppg as ppg
             ')
             ->from('predictions', 'pr')
+            ->join('pr', 'teams', 't', 'pr.team_id = t.id')
+            ->join('pr', 'positions', 'pos', 'pos.id = pr.type')
+            ->join('pr', 'players', 'p', 'p.id = pr.player_id');
+
+        $result = $query->execute()->fetchAll(\PDO::FETCH_ASSOC);
+
+        return $result;
+    }
+
+    public function getMyTeamPredictions()
+    {
+        $query = $this->db->createQueryBuilder()
+            ->select('
+                pr.player_id as playerId,
+                pr.team_id as teamId,
+                pos.name as position,
+                pr.pi,
+                pr.pc,
+                pr.pt,
+                pr.pp,
+                pr.ap,
+                t.name as teamName,
+                p.first_name as firstName,
+                p.second_name as secondName,
+                p.now_cost as costNow,
+                p.total_points as totalPoints,
+                p.form as form,
+                p.ppg as ppg
+            ')
+            ->from('myteam_predictions', 'pr')
             ->join('pr', 'teams', 't', 'pr.team_id = t.id')
             ->join('pr', 'positions', 'pos', 'pos.id = pr.type')
             ->join('pr', 'players', 'p', 'p.id = pr.player_id');

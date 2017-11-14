@@ -2,9 +2,13 @@ mrgenius_index:
   path : /
   defaults:  { _controller: AppBundle:Default:index }
 
-mrgenius_data_players:
-  path : /data/players
-  defaults:  { _controller: AppBundle:Data:players }
+mrgenius_predictions_next:
+  path : /predictions/next
+  defaults:  { _controller: AppBundle:Data:next }
+
+mrgenius_predictions_current:
+  path : /predictions/current
+  defaults:  { _controller: AppBundle:Data:current }
 
 mrgenius_prediction_goalkeepers:
   path : /goalkeepers
