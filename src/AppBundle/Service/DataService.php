@@ -209,7 +209,8 @@ class DataService
             ->where('p.type IN (:types)')
             ->andWhere('p.chance_of_playing_next_round >= 75')
             ->orWhere('p.chance_of_playing_next_round IS NULL')
-            ->setParameter('types', $types, Connection::PARAM_INT_ARRAY);
+            ->setParameter('types', $types, Connection::PARAM_INT_ARRAY)
+            ->orderBy('p.id, h.round');
 
         $result = $query->execute()->fetchAll(\PDO::FETCH_ASSOC);
 
@@ -248,7 +249,8 @@ class DataService
             ->join('h', 'teams', 't1', 't1.id = h.team_id')
             ->join('h', 'teams', 't2', 't2.id = h.opponent_team')
             ->where('h.player_id IN (:playerIds)')
-            ->setParameter('playerIds', $playerIds, Connection::PARAM_INT_ARRAY);
+            ->setParameter('playerIds', $playerIds, Connection::PARAM_INT_ARRAY)
+            ->orderBy('p.id, h.round');
 
         $result = $query->execute()->fetchAll(\PDO::FETCH_ASSOC);
 
@@ -324,7 +326,12 @@ class DataService
 
     public function getCurrentTeamPredictions()
     {
-        $playerIds = [260, 264, 245, 382, 97, 13, 255, 247, 374, 285, 394, 420, 367, 63, 151];
+        $this->db->executeQuery('truncate table myteam_predictions');
+
+        $playerIds = [260, 264, 245, 382, 97, 13, 255, 247, 374,
+            285, 394,
+            394, 420, 367, 63, 151
+        ];
 
         $tableData = [];
 
@@ -332,6 +339,8 @@ class DataService
         $playerFixtures = $this->loadPlayerFixturesByPlayerIds($playerIds, $this->nextEvent);
 
         foreach ($playerHistory as $attackerId => $attackerData) {
+            $samples = [];
+            $data = [];
             $type = $attackerData['type'];
             $avgMinutes = $this->avgMinutes($attackerData);
             $avgPoints = $this->avgPoints($attackerData);
@@ -385,6 +394,7 @@ class DataService
                         ];
                     }
 
+
                     # Predict points
                     $prediction = $this->predictRegression($samples, $data, $predictionSample);
 
@@ -397,24 +407,9 @@ class DataService
             }
         }
 
-        $this->db->executeQuery('truncate table myteam_predictions');
         $this->importMyTeamPredictedData($tableData);
 
         return $tableData;
-    }
-
-    public function predictPlayersPointsByPlayerIds()
-    {
-        $playerIds = [];
-        $myTeam = "https://fantasy.premierleague.com/drf/my-team/5304993/";
-        $content = file_get_contents($myTeam);
-        $objectContent = json_decode($content);
-        $players = $objectContent->{'picks'};
-        foreach ($players as $item) {
-            $playerIds[] = $item->{'element'};
-        }
-
-        var_dump($playerIds);
     }
 
     /**
@@ -423,12 +418,18 @@ class DataService
      */
     public function predictPlayersPointsByType($type)
     {
+        $this->db->executeQuery(
+            'DELETE FROM predictions WHERE type = ' . $type .  ' AND event_id = ' . $this->nextEvent
+        );
+
         $tableData = [];
 
         $playerHistory = $this->loadPlayersHistoryByType([$type]);
         $playerFixtures = $this->loadPlayerFixturesByType([$type], $this->nextEvent);
 
         foreach ($playerHistory as $attackerId => $attackerData) {
+            $samples = [];
+            $data = [];
             $avgMinutes = $this->avgMinutes($attackerData);
             $avgPoints = $this->avgPoints($attackerData);
             if ($avgMinutes > 10 && $avgPoints > 1) {
@@ -481,6 +482,7 @@ class DataService
                         ];
                     }
 
+
                     # Predict points
                     $prediction = $this->predictRegression($samples, $data, $predictionSample);
 
@@ -493,7 +495,6 @@ class DataService
             }
         }
 
-        $this->db->executeQuery('DELETE FROM predictions WHERE type = ' . $type .  ' AND event_id = ' . $this->nextEvent);
         $this->importPredictedData($tableData);
 
         return $tableData;

@@ -31,6 +31,23 @@ class DataController extends Controller
     /**
      * @return \Symfony\Component\HttpFoundation\Response
      */
+    public function importPlayersAction()
+    {
+        /** @var ImportService $importService */
+        $importService = $this->get('mrgenius.importservice');
+
+        /** @var Player[] $players */
+        $players = $importService->importPlayers();
+
+        return $this->render('default/players.html.twig', [
+            'players' => $players,
+        ]);
+
+    }
+
+    /**
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
     public function importTeamsAction()
     {
         /** @var ImportService $importService */
@@ -71,7 +88,7 @@ class DataController extends Controller
 
         # CALCULATION
         /** @var Player[] $teams */
-        # $players = $dataService->getCurrentTeamPredictions();
+        $players = $dataService->getCurrentTeamPredictions();
 
         /** @var Player[] $teams */
         $players = $dataService->getMyTeamPredictions();

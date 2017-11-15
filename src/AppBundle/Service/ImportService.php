@@ -507,7 +507,6 @@ class ImportService
         }
 
         if ($sqlPartMiddle) {
-            echo 'Imported player: ' . $playerId . PHP_EOL;
             $sql = $sql . $sqlPartStart . trim($sqlPartMiddle, ",") .
                 " ON DUPLICATE KEY UPDATE id = id";
             $stmt = $this->db->prepare($sql);
